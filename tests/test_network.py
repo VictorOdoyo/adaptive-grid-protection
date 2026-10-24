@@ -100,3 +100,9 @@ def test_post_trip_solver_does_not_fabricate_voltage_on_unsupported_island():
     assert np.all(result["voltage"]["b"] == 0)
     assert abs(result["voltage"]["a"][0]) == pytest.approx(230)
     assert result["deenergized"] == ["b"]
+
+
+def test_driving_point_impedance_adds_source_and_line_series_matrices():
+    source = m.balanced_source("g", "a", 230, 3j, 1j)
+    line = m.Branch("l", "a", "b", np.eye(3) * (1 + 2j))
+    assert np.allclose(m.driving_impedance(["a", "b"], [line], [source], "b"), source.z + line.z)

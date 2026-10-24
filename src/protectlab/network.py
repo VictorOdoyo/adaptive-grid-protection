@@ -259,3 +259,16 @@ def solve_energized(buses, branches, sources, shunts=None, injections=None, faul
     )
     voltage.update(result["voltage"])
     return {**result, "voltage": voltage, "deenergized": [b for b in buses if b not in active]}
+
+
+def driving_impedance(buses, branches, sources, bus, shunts=None):
+    y, _, indices = admittance(buses, branches, sources, shunts)
+    if bus not in indices:
+        raise ValueError("bus not found")
+    probe = np.zeros((len(y), 3), complex)
+    probe[indices[bus]] = np.eye(3)
+    try:
+        response = np.linalg.solve(y, probe)
+    except np.linalg.LinAlgError as error:
+        raise ValueError("driving impedance requires grounded nonsingular network") from error
+    return response[indices[bus]]
