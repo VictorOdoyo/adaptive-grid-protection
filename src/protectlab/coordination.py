@@ -96,3 +96,11 @@ def optimize(
     if not certificate["coordinated"]:
         raise RuntimeError("optimized settings failed independent margin audit")
     return {"multipliers": fit.x, "objective": float(objective @ fit.x), "audit": certificate}
+
+
+def pickup_interval(maximum_load_a, minimum_fault_a, load_margin=1.25, sensitivity=1.5):
+    from .core import positive
+
+    lower = positive(maximum_load_a) * positive(load_margin)
+    upper = positive(minimum_fault_a) / positive(sensitivity)
+    return {"minimum_pickup_a": lower, "maximum_pickup_a": upper, "feasible": bool(lower < upper)}

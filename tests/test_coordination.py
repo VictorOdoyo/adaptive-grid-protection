@@ -17,3 +17,8 @@ def test_tms_optimization_has_independently_audited_grading_margin():
     assert result["audit"]["coordinated"]
     assert np.all(result["multipliers"] >= 0.02 - 1e-12)
     assert min(row["margin_s"] for row in result["audit"]["rows"]) >= 0.2 - 1e-9
+
+
+def test_low_inverter_fault_current_can_make_overcurrent_pickup_infeasible():
+    assert m.pickup_interval(80, 1000)["feasible"]
+    assert not m.pickup_interval(80, 96)["feasible"]
