@@ -18,3 +18,10 @@ def test_source_emf_and_impedance_keep_grounded_zero_sequence():
     source = m.balanced_source("grid", "a", 6350, 3j, 1j)
     assert seq(source.emf)[1] == pytest.approx(6350)
     assert np.allclose(source.z @ np.ones(3), np.ones(3) * 3j)
+
+
+def test_branch_stamp_has_gauge_nullspace_without_ground_source():
+    line = m.Branch("line", "a", "b", np.eye(3) * (1 + 2j))
+    y, j, _ = m.admittance(["a", "b"], [line])
+    assert np.allclose(y @ np.ones(6), 0)
+    assert np.all(j == 0)

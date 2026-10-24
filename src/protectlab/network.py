@@ -49,3 +49,40 @@ def balanced_source(name, bus, phase_voltage_v, z0, z1, z2=None, angle_rad=0):
 
     emf = abc([0, positive(phase_voltage_v) * np.exp(1j * angle_rad), 0])
     return Source(name, bus, emf, phase_matrix([z0, z1, z1 if z2 is None else z2]))
+
+
+def admittance(buses, branches, sources=(), shunts=None):
+    buses = tuple(buses)
+    if not buses or len(set(buses)) != len(buses) or any(not isinstance(b, str) or not b for b in buses):
+        raise ValueError("unique named buses required")
+    indices = {bus: slice(3 * i, 3 * i + 3) for i, bus in enumerate(buses)}
+    y = np.zeros((3 * len(buses),) * 2, complex)
+    injection = np.zeros(3 * len(buses), complex)
+    names = set()
+    for branch in branches:
+        if branch.name in names or branch.start not in indices or branch.end not in indices:
+            raise ValueError("unique branch names and known endpoints required")
+        names.add(branch.name)
+        if not branch.closed:
+            continue
+        a, b = indices[branch.start], indices[branch.end]
+        g = np.linalg.inv(branch.z)
+        y[a, a] += g
+        y[b, b] += g
+        y[a, b] -= g
+        y[b, a] -= g
+    for source in sources:
+        if source.bus not in indices:
+            raise ValueError("source bus not found")
+        s = indices[source.bus]
+        g = np.linalg.inv(source.z)
+        y[s, s] += g
+        injection[s] += g @ source.emf
+    for bus, shunt in (shunts or {}).items():
+        from .core import finite
+
+        g = finite(shunt)
+        if bus not in indices or g.shape != (3, 3) or np.linalg.eigvalsh((g + g.conj().T) / 2).min() < -1e-12:
+            raise ValueError("passive 3x3 shunt at known bus required")
+        y[indices[bus], indices[bus]] += g
+    return y, injection, indices
