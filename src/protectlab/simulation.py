@@ -164,7 +164,7 @@ def run(scenario):
     from .directional import MemoryVoltage, torque
     from .measurement import FourierWindow
     from .overcurrent import InverseRelay
-    from .switchgear import Breaker
+    from .switchgear import Breaker, BreakerFailure
 
     time = np.arange(round(scenario.duration_s * scenario.sample_hz) + 1) / scenario.sample_hz
     dt = 1 / scenario.sample_hz
@@ -201,6 +201,7 @@ def run(scenario):
     cache = {}
     noise = stream(scenario.seed, "feeder-noise").normal(0, scenario.noise_a, (n, 2, 3))
     previous_closed = [True, True]
+    failure = BreakerFailure(0.12, 20)
     dc_amplitude = np.zeros((2, 3))
     previous_fault = False
     actual_inception = None
@@ -293,6 +294,11 @@ def run(scenario):
                 events.append({"time_s": float(t), "device": name, "event": "open"})
             previous_closed[index] = breakers[index].closed
             travel[k, index] = relay[index].travel
+        was_failure = failure.tripped
+        measured_primary = float(np.max(abs(estimates[k, 0]))) if valid[k, 0] else 0.0
+        if failure.update(t, relay[0].tripped, measured_primary, breakers[0].closed) and not was_failure:
+            events.append({"time_s": float(t), "device": "backup", "event": "breaker_failure"})
+            breakers[1].update(t, True)
     fault_final = scenario.fault_kind != "none" and (
         scenario.removal_s is None or time[-1] < scenario.removal_s
     )

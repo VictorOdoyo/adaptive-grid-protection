@@ -104,3 +104,11 @@ def test_directional_supervision_exposes_inverter_torque_ambiguity_without_truth
     # Controlled-inverter fault current can defeat conventional torque interpretation.
     assert trip_time(directional) > trip_time(blind)
     assert any(e["event"] == "open" and e["device"] == "backup" for e in directional["events"])
+
+
+def test_stuck_primary_breaker_is_cleared_by_current_supervised_backup():
+    result = m.run(m.Scenario(primary_stuck=True, duration_s=0.8))
+    assert any(e["event"] == "breaker_failure" for e in result["events"])
+    assert any(e["event"] == "open" and e["device"] == "backup" for e in result["events"])
+    assert np.all(result["final_voltage"]["junction"] == 0)
+    assert result["breaker_closed"][-1, 0]
