@@ -27,3 +27,16 @@ def test_decimation_tracks_physical_rate_and_rejects_aliasing_cutoff():
     assert len(result["values"]) == 200 and result["sample_hz"] == 2000
     with pytest.raises(ValueError):
         m.decimate(np.ones(100), 10000, 5, 1500)
+
+
+def test_dft_preserves_absolute_phase_and_propagates_one_bad_sample():
+    from protectlab.waveforms import synthesize
+
+    t = 0.013 + np.arange(400) / 10000
+    expected = np.array([10 + 3j, 2 - 8j, 5j])
+    q = np.ones(len(t), bool)
+    q[205] = False
+    result = m.dft(t, synthesize(t, expected), quality=q)
+    assert np.allclose(result["phasor"][199:], expected, atol=1e-11)
+    assert not np.any(result["valid"][205:])
+    assert result["valid"][204]
