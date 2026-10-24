@@ -48,3 +48,30 @@ def dc_offset(time, before, after, inception_s, tau_s, frequency_hz=50):
     selected = t >= inception_s
     offset[selected] = np.exp(-(t[selected] - inception_s) / tau)[:, None] * mismatch
     return offset
+
+
+def rl_fault(
+    time,
+    resistance_ohm,
+    inductance_h,
+    voltage_rms_v,
+    frequency_hz=50,
+    inception_s=0.0,
+    angle_rad=0.0,
+    initial_a=0.0,
+):
+    from .core import positive, timebase
+
+    t = timebase(time)
+    r, inductance = positive(resistance_ohm), positive(inductance_h)
+    omega = 2 * np.pi * positive(frequency_hz)
+    v = positive(voltage_rms_v)
+    impedance = r + 1j * omega * inductance
+    particular = np.sqrt(2) * v / abs(impedance) * np.cos(omega * t + angle_rad - np.angle(impedance))
+    at = np.sqrt(2) * v / abs(impedance) * np.cos(omega * inception_s + angle_rad - np.angle(impedance))
+    result = np.full(len(t), initial_a, float)
+    selected = t >= inception_s
+    result[selected] = particular[selected] + (initial_a - at) * np.exp(
+        -r / inductance * (t[selected] - inception_s)
+    )
+    return result
