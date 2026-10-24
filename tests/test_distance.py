@@ -42,3 +42,12 @@ def test_quadrilateral_can_extend_resistive_reach_without_reactive_overreach():
 
 def test_load_wedge_blocks_forward_and_reverse_load_but_not_reactive_fault():
     assert np.array_equal(m.load_encroachment([10 + 1j, -10 - 1j, 2 + 9j], 5), [True, True, False])
+
+
+def test_distance_zones_keep_separate_reach_and_time():
+    zones = m.Zones([4j, 8j], [0, 0.1])
+    for _ in range(9):
+        assert not np.any(zones.update(6j, 0.01))
+    assert zones.update(6j, 0.01)[1]
+    immediate = m.Zones([4j], [0])
+    assert immediate.update(2j, 0.001)[0]

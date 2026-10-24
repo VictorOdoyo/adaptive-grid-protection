@@ -68,3 +68,30 @@ def load_encroachment(impedance, minimum_ohm, half_angle_rad=np.pi / 6):
     angle = abs(np.angle(z))
     near_real = np.minimum(angle, abs(np.pi - angle)) < half_angle_rad
     return (abs(z) >= positive(minimum_ohm)) & near_real
+
+
+class Zones:
+    def __init__(self, reaches_ohm, delays_s):
+        from .core import finite
+
+        self.reaches = finite(reaches_ohm, ndim=1)
+        self.delays = finite(delays_s, real=True, ndim=1)
+        if (
+            self.reaches.shape != self.delays.shape
+            or np.any(self.delays < 0)
+            or np.any(abs(self.reaches) == 0)
+        ):
+            raise ValueError("nonzero zone reaches and matching nonnegative delays required")
+        self.elapsed = np.zeros(len(self.reaches))
+        self.trip = np.zeros(len(self.reaches), bool)
+
+    def update(self, impedance, dt_s, valid=True, forward=True, load_block=False):
+        from .core import positive
+
+        dt = positive(dt_s)
+        picked = np.array([bool(mho(impedance, z, valid, forward)) for z in self.reaches]) & (
+            not bool(load_block)
+        )
+        self.elapsed = np.where(picked, self.elapsed + dt, 0.0)
+        self.trip |= picked & (self.elapsed >= self.delays - 1e-12)
+        return self.trip.copy()
