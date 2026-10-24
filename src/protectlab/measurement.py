@@ -125,3 +125,15 @@ def frequency(time, phasor, nominal_hz=50, minimum_magnitude=1e-6):
     result = np.full(len(t), float(nominal_hz))
     result[1:] = nominal_hz + np.angle(p[1:] * np.conj(p[:-1])) / (2 * np.pi * np.diff(t))
     return {"frequency_hz": result, "valid": np.r_[False, valid]}
+
+
+def mimic(values, sample_hz, tau_s, nominal_hz=50):
+    from .core import finite, positive
+
+    v = finite(values, real=True)
+    dt = 1 / positive(sample_hz)
+    decay = np.exp(-dt / positive(tau_s))
+    gain = 1 - decay * np.exp(-2j * np.pi * positive(nominal_hz) * dt)
+    out = np.zeros_like(v)
+    out[1:] = (v[1:] - decay * v[:-1]) / abs(gain)
+    return {"values": out, "response": gain / abs(gain), "valid": np.arange(len(v)) > 0}

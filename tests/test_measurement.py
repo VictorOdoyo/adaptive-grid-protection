@@ -72,3 +72,11 @@ def test_frequency_tracking_keeps_nominal_and_increment_separate():
     assert np.allclose(result["frequency_hz"][1:], 49.3)
     p[10] = 0
     assert not m.frequency(t, p)["valid"][10]
+
+
+def test_mimic_cancels_matching_dc_exponential_and_exposes_phase_shift():
+    t = np.arange(1000) / 10000
+    result = m.mimic(np.exp(-t / 0.03), 10000, 0.03)
+    assert np.max(abs(result["values"][1:])) < 1e-12
+    assert abs(result["response"]) == pytest.approx(1)
+    assert abs(np.angle(result["response"])) > 1
