@@ -111,3 +111,17 @@ def least_squares(time, values, frequency_hz=50, orders=(1, 2, 3), dc=True):
         "residual": residual,
         "condition": float(np.linalg.cond(design)),
     }
+
+
+def frequency(time, phasor, nominal_hz=50, minimum_magnitude=1e-6):
+    from .core import finite, positive, timebase
+
+    t = timebase(time)
+    p = finite(phasor, ndim=1)
+    if len(p) != len(t):
+        raise ValueError("aligned phasor trajectory required")
+    minimum = positive(minimum_magnitude)
+    valid = (abs(p[1:]) >= minimum) & (abs(p[:-1]) >= minimum)
+    result = np.full(len(t), float(nominal_hz))
+    result[1:] = nominal_hz + np.angle(p[1:] * np.conj(p[:-1])) / (2 * np.pi * np.diff(t))
+    return {"frequency_hz": result, "valid": np.r_[False, valid]}

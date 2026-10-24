@@ -63,3 +63,12 @@ def test_joint_fit_recovers_off_nominal_harmonics_and_dc():
     assert np.allclose(result["phasors"][2], expected * 0.2)
     assert np.allclose(result["dc"], 3)
     assert result["residual"] < 1e-12
+
+
+def test_frequency_tracking_keeps_nominal_and_increment_separate():
+    t = np.arange(1000) / 1000
+    p = 10 * np.exp(2j * np.pi * (-0.7) * t)
+    result = m.frequency(t, p)
+    assert np.allclose(result["frequency_hz"][1:], 49.3)
+    p[10] = 0
+    assert not m.frequency(t, p)["valid"][10]
