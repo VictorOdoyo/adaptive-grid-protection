@@ -61,3 +61,32 @@ def simulate(time, primary_a, model=None, initial_flux_vs=0.0):
         "magnetizing_a": magnetizing,
         "saturated": abs(flux) > model.knee_vs,
     }
+
+
+def magnetic_energy(flux_vs, model):
+    from .core import finite
+
+    magnitude = abs(finite(flux_vs, real=True))
+    inner = np.minimum(magnitude, model.knee_vs)
+    outer = np.maximum(0, magnitude - model.knee_vs)
+    return (
+        0.5 * inner**2 / model.magnetizing_h
+        + model.knee_vs / model.magnetizing_h * outer
+        + 0.5 * outer**2 / model.saturated_h
+    )
+
+
+def energy_audit(time, primary_a, capture, model):
+    from .core import integrate
+
+    secondary = capture["secondary_a"]
+    voltage = model.burden_ohm * secondary
+    input_energy = float(integrate(time, voltage * np.asarray(primary_a) / model.ratio).real)
+    burden_energy = float(integrate(time, model.burden_ohm * secondary**2).real)
+    stored = magnetic_energy(capture["flux_vs"], model)
+    return {
+        "input_j": input_energy,
+        "burden_j": burden_energy,
+        "storage_change_j": float(stored[-1] - stored[0]),
+        "numerical_defect_j": input_energy - burden_energy - float(stored[-1] - stored[0]),
+    }

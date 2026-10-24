@@ -17,3 +17,18 @@ def test_ct_linear_limit_matches_constant_primary_exponential():
     r = m.simulate(t, np.ones(len(t)) * 200, ct)
     assert np.max(abs(r["secondary_a"] - np.exp(-2 * t))) < 4e-5
     assert not np.any(r["saturated"])
+
+
+def test_ct_energy_gradient_matches_excitation_and_refinement_reduces_defect():
+    ct = m.CT(knee_vs=0.02)
+    phi = np.linspace(0.021, 0.08, 101)
+    step = 1e-7
+    derivative = (m.magnetic_energy(phi + step, ct) - m.magnetic_energy(phi - step, ct)) / (2 * step)
+    assert np.allclose(derivative, m.excitation(phi, ct), rtol=1e-8)
+    defects = []
+    for n in (1001, 2001):
+        t = np.linspace(0, 0.1, n)
+        primary = 2000 * np.sin(2 * np.pi * 50 * t)
+        cap = m.simulate(t, primary, ct)
+        defects.append(abs(m.energy_audit(t, primary, cap, ct)["numerical_defect_j"]))
+    assert defects[1] < defects[0] * 0.6
