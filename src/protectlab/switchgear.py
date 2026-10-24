@@ -34,3 +34,29 @@ class Breaker:
         self.open_time = None
         self.last_time = time_s
         return True
+
+
+class BreakerFailure:
+    def __init__(self, delay_s=0.12, current_threshold_a=5):
+        from .core import positive
+
+        self.delay = positive(delay_s)
+        self.threshold = positive(current_threshold_a)
+        self.started = None
+        self.tripped = False
+
+    def update(self, time_s, trip_command, current_a, breaker_closed=True):
+        from .core import positive
+
+        current = positive(current_a, allow_zero=True)
+        if not np.isfinite(time_s):
+            raise ValueError("finite failure timer clock required")
+        if trip_command and self.started is None:
+            self.started = time_s
+        if self.started is not None and time_s < self.started:
+            raise ValueError("failure timer clock moved backwards")
+        if not breaker_closed or current < self.threshold:
+            self.started = None
+        if self.started is not None and time_s - self.started >= self.delay - 1e-12:
+            self.tripped = True
+        return self.tripped

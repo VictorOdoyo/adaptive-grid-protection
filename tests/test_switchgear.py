@@ -11,3 +11,14 @@ def test_breaker_opens_after_latched_command_without_requiring_sustained_trip():
     assert b.open_time == pytest.approx(0.14)
     assert not b.close(0.2)
     assert b.close(0.2, True)
+
+
+def test_breaker_failure_requires_persistent_current_after_trip():
+    failure = m.BreakerFailure(0.1, 10)
+    assert not failure.update(0, True, 100)
+    assert not failure.update(0.09, False, 100)
+    assert failure.update(0.1, False, 100)
+    clear = m.BreakerFailure(0.1, 10)
+    clear.update(0, True, 100)
+    assert not clear.update(0.05, False, 0, False)
+    assert not clear.update(0.2, False, 0, False)
