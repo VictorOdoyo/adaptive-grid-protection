@@ -123,3 +123,33 @@ def flux_prescreen(time, primary_a, model, initial_flux_vs=0.0):
         model.burden_ohm * primary / model.ratio, t, initial=0
     )
     return {"ideal_flux_vs": ideal_flux, "exceeds_knee": abs(ideal_flux) > model.knee_vs}
+
+
+class CTState:
+    def __init__(self, model=None, initial_flux_vs=0.0):
+        self.model = CT() if model is None else model
+        if not np.isfinite(initial_flux_vs):
+            raise ValueError("finite initial flux required")
+        self.flux = float(initial_flux_vs)
+        self.time = None
+
+    def update(self, time_s, primary_a):
+        if not np.all(np.isfinite([time_s, primary_a])):
+            raise ValueError("finite CT sample required")
+        model = self.model
+        if self.time is not None:
+            dt = time_s - self.time
+            if dt <= 0:
+                raise ValueError("increasing CT clock required")
+            h = dt * model.burden_ohm
+            rhs = self.flux + h * primary_a / model.ratio
+            linear = rhs / (1 + h / model.magnetizing_h)
+            self.flux = (
+                linear
+                if abs(linear) <= model.knee_vs
+                else np.sign(rhs)
+                * (abs(rhs) + h * model.knee_vs * (1 / model.saturated_h - 1 / model.magnetizing_h))
+                / (1 + h / model.saturated_h)
+            )
+        self.time = float(time_s)
+        return float(primary_a / model.ratio - excitation(self.flux, model))

@@ -54,3 +54,12 @@ def test_dc_offset_burden_flux_predicts_increased_saturation_stress():
     normal = m.flux_prescreen(t, 1000 * np.sin(2 * np.pi * 50 * t), ct)
     offset = m.flux_prescreen(t, 1000 * np.sin(2 * np.pi * 50 * t) + 1000 * np.exp(-t / 0.05), ct)
     assert np.max(abs(offset["ideal_flux_vs"])) > 3 * np.max(abs(normal["ideal_flux_vs"]))
+
+
+def test_streaming_ct_matches_complete_record_integration():
+    t = np.arange(400) / 3200
+    primary = 1000 * np.cos(2 * np.pi * 50 * t) + 1000 * np.exp(-t / 0.03)
+    ct = m.CT(knee_vs=0.03)
+    state = m.CTState(ct)
+    streamed = np.array([state.update(ti, i) for ti, i in zip(t, primary, strict=True)])
+    assert np.allclose(streamed, m.simulate(t, primary, ct)["secondary_a"])
