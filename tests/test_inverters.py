@@ -37,3 +37,11 @@ def test_ibr_network_satisfies_control_and_kcl_during_unbalanced_fault():
     result = m.solve_network(["a", "b"], [line], [source], [inverter], fault=fault)
     assert result["control_residual"] < 1e-7 and result["residual"] < 1e-10
     assert max(abs(result["inverter_current"]["pv"])) <= 24 + 1e-6
+
+
+def test_held_current_response_matches_exponential_and_is_causal():
+    t = np.linspace(0, 0.02, 101)
+    target = np.ones((101, 3), complex) * 10
+    current = m.response(t, target, 0.003, initial=np.zeros(3))
+    assert np.allclose(current[:, 0], 10 * (1 - np.exp(-t / 0.003)))
+    assert current[0, 0] == 0

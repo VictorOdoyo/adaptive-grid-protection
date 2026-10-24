@@ -106,3 +106,19 @@ def solve_network(buses, branches, sources, inverters, shunts=None, fault=None):
         "inverter_current": {i.name: c for i, c in zip(inverters, current, strict=True)},
         "control_residual": residual,
     }
+
+
+def response(time, target, time_constant_s, initial=None):
+    from .core import finite, positive, timebase
+
+    t = timebase(time)
+    target = finite(target)
+    tau = positive(time_constant_s)
+    if target.shape[0] != len(t):
+        raise ValueError("aligned target current trajectory required")
+    current = np.empty_like(target)
+    current[0] = target[0] if initial is None else initial
+    for k in range(1, len(t)):
+        decay = np.exp(-(t[k] - t[k - 1]) / tau)
+        current[k] = decay * current[k - 1] + (1 - decay) * target[k - 1]
+    return current
