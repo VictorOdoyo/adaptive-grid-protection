@@ -166,7 +166,19 @@ def run(scenario):
     n = len(time)
     relay = [InverseRelay(400, "very", 0.03), InverseRelay(450, "very", 0.12)]
     breakers = [Breaker(scenario.opening_s, scenario.primary_stuck), Breaker(scenario.opening_s)]
-    windows = [FourierWindow(scenario.sample_hz, scenario.frequency_hz) for _ in range(2)]
+    if scenario.instrumented:
+        from .frontend import CurrentFrontend
+        from .instrument import CT
+
+        model = CT(knee_vs=scenario.ct_knee_vs)
+        windows = [
+            CurrentFrontend(scenario.sample_hz, scenario.frequency_hz, model, scenario.adc_scale_a)
+            for _ in range(2)
+        ]
+    else:
+        windows = [FourierWindow(scenario.sample_hz, scenario.frequency_hz) for _ in range(2)]
+    ct_flux = np.zeros((n, 2, 3))
+    adc_clipped = np.zeros((n, 2, 3), bool)
     waves = np.zeros((n, 2, 3))
     true_current = np.zeros((n, 2, 3), complex)
     estimates = np.zeros((n, 2, 3), complex)
@@ -200,6 +212,9 @@ def run(scenario):
                 + noise[k, index]
             )
             estimate = windows[index].update(t, waves[k, index])
+            if scenario.instrumented:
+                ct_flux[k, index] = [state.flux for state in windows[index].states]
+                adc_clipped[k, index] = windows[index].clipped
             if estimate is not None:
                 valid[k, index] = True
                 estimates[k, index] = estimate
@@ -224,6 +239,8 @@ def run(scenario):
         cache[final_state] = equilibrium(scenario, *final_state[:2], fault_active=final_state[2])
     return {
         "time_s": time,
+        "ct_flux_vs": ct_flux,
+        "adc_clipped": adc_clipped,
         "current_wave_a": waves,
         "true_current_a": true_current,
         "phasor_a": estimates,

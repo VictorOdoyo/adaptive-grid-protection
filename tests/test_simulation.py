@@ -39,3 +39,10 @@ def test_closed_loop_primary_clears_fault_without_upstream_trip():
     trip = next(e["time_s"] for e in result["events"] if e["event"] == "trip")
     opened = next(e["time_s"] for e in result["events"] if e["event"] == "open")
     assert opened - trip == pytest.approx(0.04, abs=1 / 3200)
+
+
+def test_adc_clipping_blocks_closed_loop_trip_instead_of_using_fake_phasor():
+    result = m.run(m.Scenario(instrumented=True, adc_scale_a=0.05, duration_s=0.4))
+    assert np.any(result["adc_clipped"])
+    assert not np.any(result["valid"][500:, 0])
+    assert not any(e["event"] == "trip" for e in result["events"])
