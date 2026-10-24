@@ -67,3 +67,17 @@ def dft(time, values, frequency_hz=50, samples_per_cycle=None, quality=None):
         bad = np.r_[0, np.cumsum(~q)]
         valid[count - 1 :] &= (bad[count:] - bad[:-count]) == 0
     return {"phasor": phasor, "valid": valid, "window_samples": count, "time_s": t.copy()}
+
+
+def sliding_rms(values, window):
+    from .core import finite, integer
+
+    v = finite(values, real=True)
+    count = integer(window)
+    if count > len(v):
+        raise ValueError("window exceeds record")
+    cumulative = np.concatenate([np.zeros((1, *v.shape[1:])), np.cumsum(v * v, axis=0)])
+    result = np.zeros(v.shape)
+    result[count - 1 :] = np.sqrt(np.maximum(0, (cumulative[count:] - cumulative[:-count]) / count))
+    valid = np.arange(len(v)) >= count - 1
+    return {"rms": result, "valid": valid}

@@ -40,3 +40,13 @@ def test_dft_preserves_absolute_phase_and_propagates_one_bad_sample():
     assert np.allclose(result["phasor"][199:], expected, atol=1e-11)
     assert not np.any(result["valid"][205:])
     assert result["valid"][204]
+
+
+def test_true_rms_includes_harmonic_energy():
+    from protectlab.waveforms import harmonics
+
+    t = np.arange(800) / 10000
+    wave = harmonics(t, {1: [10, 10, 10], 3: [4, 4, 4]})
+    result = m.sliding_rms(wave, 200)
+    assert np.allclose(result["rms"][199:], np.sqrt(116))
+    assert not result["valid"][0]
