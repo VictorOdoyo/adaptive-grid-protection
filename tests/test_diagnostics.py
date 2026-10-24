@@ -17,3 +17,9 @@ def test_two_ended_location_recovers_resistive_fault_with_remote_infeed():
     assert result["valid"]
     assert result["fraction"] == pytest.approx(0.63)
     assert result["residual_v"] < 1e-10
+
+
+def test_reactance_locator_ignores_pure_resistive_drop_in_its_stated_model():
+    result = m.reactance_location(0.4 * (1 + 3j) + 2, 1 + 3j)
+    assert result["fraction"] == pytest.approx(0.4)
+    assert result["valid"]

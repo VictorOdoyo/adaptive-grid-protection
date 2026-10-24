@@ -17,3 +17,14 @@ def two_ended(left_v, right_v, left_i, right_i, line_z, minimum_current_a=1.0):
     location = float(np.vdot(predictor, response).real / denominator)
     residual = float(np.linalg.norm(response - location * predictor))
     return {"valid": bool(0 <= location <= 1), "fraction": location, "residual_v": residual}
+
+
+def reactance_location(apparent_ohm, line_ohm, minimum_reactance=0.001):
+    from .core import finite, positive
+
+    z = finite(apparent_ohm)
+    line = complex(finite(line_ohm))
+    if abs(line.imag) < positive(minimum_reactance):
+        raise ValueError("observable line reactance required")
+    fraction = z.imag / line.imag
+    return {"fraction": fraction, "valid": (fraction >= 0) & (fraction <= 1)}
