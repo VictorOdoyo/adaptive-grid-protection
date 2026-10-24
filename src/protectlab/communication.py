@@ -78,3 +78,16 @@ class Receiver:
 def permissive_trip(local_forward, local_pickup, remote_payload, channel_valid=True):
     remote = bool(channel_valid and isinstance(remote_payload, dict) and remote_payload.get("permit") is True)
     return bool(local_forward and local_pickup and remote)
+
+
+def channel_metrics(channel, received):
+    delays = [r["received_s"] - r["sent_s"] for r in received]
+    if any(not np.isfinite(d) or d < 0 for d in delays):
+        raise ValueError("causal finite message timestamps required")
+    return {
+        "sent": channel.sent,
+        "dropped": channel.dropped,
+        "received": len(received),
+        "delivery_fraction": 0.0 if not channel.sent else len(received) / channel.sent,
+        "maximum_delay_s": None if not delays else max(delays),
+    }
