@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import numpy as np
 
 
@@ -23,3 +25,46 @@ def phase_limit(positive_current, negative_current, phase_limit_a):
     ceiling = positive(phase_limit_a)
     scale = min(1.0, ceiling / max(float(np.max(abs(requested))), 1e-30))
     return requested * scale
+
+
+@dataclass(frozen=True)
+class Inverter:
+    name: str
+    bus: str
+    rated_current_a: float
+    nominal_phase_v: float
+    active_current_pu: float = 0.8
+    reactive_current_pu: float = 0.0
+    limit_pu: float = 1.2
+    support_gain: float = 2.0
+    negative_gain: float = 0.0
+    priority: str = "reactive"
+
+    def __post_init__(self):
+        from .core import positive
+
+        for field in ("rated_current_a", "nominal_phase_v", "limit_pu"):
+            positive(getattr(self, field), field)
+        for field in ("support_gain", "negative_gain"):
+            positive(getattr(self, field), field, allow_zero=True)
+        if not np.all(np.isfinite([self.active_current_pu, self.reactive_current_pu])):
+            raise ValueError("finite current setpoints required")
+        if self.priority not in ("active", "reactive"):
+            raise ValueError("unknown priority")
+
+
+def requested_current(model, voltage):
+    from .core import seq
+
+    _, v1, v2 = seq(voltage)
+    angle = np.angle(v1) if abs(v1) > model.nominal_phase_v * 1e-6 else 0.0
+    iq = model.reactive_current_pu + model.support_gain * max(0.0, 1 - abs(v1) / model.nominal_phase_v)
+    positive = priority_current(model.active_current_pu, iq, model.limit_pu, model.priority) * np.exp(
+        1j * angle
+    )
+    negative = -model.negative_gain * v2 / model.nominal_phase_v
+    return phase_limit(
+        positive * model.rated_current_a,
+        negative * model.rated_current_a,
+        model.limit_pu * model.rated_current_a,
+    )
