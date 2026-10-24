@@ -60,3 +60,10 @@ def test_atomic_setting_commit_waits_for_delay_and_freezes_during_fault():
     assert manager.active == base
     assert m.commit(manager, 0.14, "b", 0.14)
     assert manager.active == weak
+
+
+def test_unknown_topology_is_reported_instead_of_claiming_safe_fallback():
+    base = m.Group("base", "a", 1, (100, 100), (0.05, 0.2))
+    manager = m.Manager(base, m.certify(base, [[500, 500]], [(0, 0, 1)]))
+    assert not m.status(manager, "unknown", 0, 0)["adaptive_valid"]
+    assert not m.status(manager, "a", 0, 1)["adaptive_valid"]

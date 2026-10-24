@@ -142,3 +142,18 @@ def commit(manager, now_s, topology, observed_s, fault_active=False):
     manager.pending = None
     manager.history.append({"time_s": now_s, "event": "committed", "group": manager.active.name})
     return True
+
+
+def status(manager, topology, observed_s, now_s):
+    if not np.all(np.isfinite([observed_s, now_s])):
+        raise ValueError("finite topology timestamps required")
+    fresh = 0 <= now_s - observed_s <= manager.maximum_age
+    compatible = manager.active.topology == topology
+    return {
+        "group": manager.active.name,
+        "revision": manager.active.revision,
+        "fresh": fresh,
+        "compatible": compatible,
+        "adaptive_valid": bool(fresh and compatible),
+        "pending": None if manager.pending is None else manager.pending["group"].name,
+    }
