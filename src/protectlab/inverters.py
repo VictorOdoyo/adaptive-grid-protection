@@ -68,3 +68,41 @@ def requested_current(model, voltage):
         negative * model.rated_current_a,
         model.limit_pu * model.rated_current_a,
     )
+
+
+def solve_network(buses, branches, sources, inverters, shunts=None, fault=None):
+    from scipy.optimize import root
+
+    from .network import solve
+
+    buses = tuple(buses)
+    names = [i.name for i in inverters]
+    if len(set(names)) != len(names) or any(i.bus not in buses for i in inverters):
+        raise ValueError("unique inverter names at known buses required")
+    if not inverters:
+        result = solve(buses, branches, sources, shunts, fault=fault)
+        return {**result, "inverter_current": {}, "control_residual": 0.0}
+    size = 3 * len(inverters)
+    scale = max(i.rated_current_a for i in inverters)
+
+    def evaluate(vector, ret=False):
+        complex_current = (vector[:size] + 1j * vector[size:]).reshape(-1, 3) * scale
+        injections = {}
+        for model, current in zip(inverters, complex_current, strict=True):
+            injections[model.bus] = injections.get(model.bus, np.zeros(3, complex)) + current
+        solved = solve(buses, branches, sources, shunts, injections, fault)
+        target = np.array([requested_current(i, solved["voltage"][i.bus]) for i in inverters])
+        difference = (complex_current - target).ravel() / scale
+        return (solved, complex_current) if ret else np.r_[difference.real, difference.imag]
+
+    guess = np.zeros(2 * size)
+    fit = root(evaluate, guess, tol=1e-10)
+    residual = float(np.max(abs(evaluate(fit.x))))
+    if residual > 1e-7:
+        raise RuntimeError("inverter/network control equilibrium did not converge")
+    result, current = evaluate(fit.x, True)
+    return {
+        **result,
+        "inverter_current": {i.name: c for i, c in zip(inverters, current, strict=True)},
+        "control_residual": residual,
+    }

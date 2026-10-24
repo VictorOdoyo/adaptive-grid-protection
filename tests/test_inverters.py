@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from protectlab import inverters as m
@@ -24,3 +25,15 @@ def test_sag_requests_reactive_support_without_creating_zero_sequence():
     i = seq(m.requested_current(inverter, abc([0, 115, 0])))
     assert i[1].imag < -90
     assert max(abs(m.requested_current(inverter, abc([0, 5, 0])))) <= 120 + 1e-10
+
+
+def test_ibr_network_satisfies_control_and_kcl_during_unbalanced_fault():
+    from protectlab.network import Branch, balanced_source, fault_connection
+
+    source = balanced_source("g", "a", 230, 1 + 3j, 0.5 + 1j)
+    line = Branch("l", "a", "b", np.eye(3) * (0.2 + 0.4j))
+    inverter = m.Inverter("pv", "b", 20, 230, negative_gain=0.2)
+    fault = fault_connection(["a", "b"], "b", "ag", 0.5)
+    result = m.solve_network(["a", "b"], [line], [source], [inverter], fault=fault)
+    assert result["control_residual"] < 1e-7 and result["residual"] < 1e-10
+    assert max(abs(result["inverter_current"]["pv"])) <= 24 + 1e-6
