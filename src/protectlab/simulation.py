@@ -153,3 +153,86 @@ def equilibrium(scenario, primary_closed=True, backup_closed=True, fault_active=
     result["branch_current"] = currents(result, grid["branches"])["branches"]
     result["deenergized"] = [b for b in grid["buses"] if b not in active]
     return result
+
+
+def run(scenario):
+    from .core import stream
+    from .measurement import FourierWindow
+    from .overcurrent import InverseRelay
+    from .switchgear import Breaker
+
+    time = np.arange(round(scenario.duration_s * scenario.sample_hz) + 1) / scenario.sample_hz
+    dt = 1 / scenario.sample_hz
+    n = len(time)
+    relay = [InverseRelay(400, "very", 0.03), InverseRelay(450, "very", 0.12)]
+    breakers = [Breaker(scenario.opening_s, scenario.primary_stuck), Breaker(scenario.opening_s)]
+    windows = [FourierWindow(scenario.sample_hz, scenario.frequency_hz) for _ in range(2)]
+    waves = np.zeros((n, 2, 3))
+    true_current = np.zeros((n, 2, 3), complex)
+    estimates = np.zeros((n, 2, 3), complex)
+    valid = np.zeros((n, 2), bool)
+    closed = np.ones((n, 2), bool)
+    travel = np.zeros((n, 2))
+    voltage = np.zeros((n, 3), complex)
+    events = []
+    cache = {}
+    noise = stream(scenario.seed, "feeder-noise").normal(0, scenario.noise_a, (n, 2, 3))
+    previous_closed = [True, True]
+    for k, t in enumerate(time):
+        for b in breakers:
+            b.update(t)
+        state = (
+            breakers[0].closed,
+            breakers[1].closed,
+            scenario.fault_kind != "none"
+            and t >= scenario.inception_s
+            and (scenario.removal_s is None or t < scenario.removal_s),
+        )
+        if state not in cache:
+            cache[state] = equilibrium(scenario, *state[:2], fault_active=state[2])
+        network = cache[state]
+        voltage[k] = network["voltage"]["junction"]
+        for index, name in enumerate(("primary", "backup")):
+            current = network["branch_current"][name]
+            true_current[k, index] = current
+            waves[k, index] = (
+                np.sqrt(2) * np.real(current * np.exp(2j * np.pi * scenario.frequency_hz * t))
+                + noise[k, index]
+            )
+            estimate = windows[index].update(t, waves[k, index])
+            if estimate is not None:
+                valid[k, index] = True
+                estimates[k, index] = estimate
+            before = relay[index].tripped
+            if k:
+                relay[index].update(
+                    0 if estimate is None else float(np.max(abs(estimate))), dt, valid=estimate is not None
+                )
+            if relay[index].tripped and not before:
+                events.append({"time_s": float(t), "device": name, "event": "trip"})
+            breakers[index].update(t, relay[index].tripped)
+            closed[k, index] = breakers[index].closed
+            if previous_closed[index] and not breakers[index].closed:
+                events.append({"time_s": float(t), "device": name, "event": "open"})
+            previous_closed[index] = breakers[index].closed
+            travel[k, index] = relay[index].travel
+    fault_final = scenario.fault_kind != "none" and (
+        scenario.removal_s is None or time[-1] < scenario.removal_s
+    )
+    final_state = (breakers[0].closed, breakers[1].closed, fault_final)
+    if final_state not in cache:
+        cache[final_state] = equilibrium(scenario, *final_state[:2], fault_active=final_state[2])
+    return {
+        "time_s": time,
+        "current_wave_a": waves,
+        "true_current_a": true_current,
+        "phasor_a": estimates,
+        "valid": valid,
+        "breaker_closed": closed,
+        "travel": travel,
+        "voltage_v": voltage,
+        "events": events,
+        "final_voltage": cache[final_state]["voltage"],
+        "maximum_network_residual": max(v["residual"] for v in cache.values()),
+        "maximum_control_residual": max(v["control_residual"] for v in cache.values()),
+    }

@@ -28,3 +28,14 @@ def test_equilibrium_recalculates_fault_and_deenergizes_after_primary_trip():
     assert np.all(opened["voltage"]["load"] == 0)
     assert np.all(opened["branch_current"]["primary"] == 0)
     assert abs(opened["voltage"]["junction"][0]) > 6000
+
+
+def test_closed_loop_primary_clears_fault_without_upstream_trip():
+    result = m.run(m.Scenario(inverter_current_a=0, duration_s=0.5))
+    assert any(e["event"] == "open" and e["device"] == "primary" for e in result["events"])
+    assert not any(e["event"] == "trip" and e["device"] == "backup" for e in result["events"])
+    assert np.all(result["final_voltage"]["load"] == 0)
+    assert abs(result["final_voltage"]["junction"][0]) > 6000
+    trip = next(e["time_s"] for e in result["events"] if e["event"] == "trip")
+    opened = next(e["time_s"] for e in result["events"] if e["event"] == "open")
+    assert opened - trip == pytest.approx(0.04, abs=1 / 3200)
