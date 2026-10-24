@@ -190,6 +190,9 @@ def run(scenario):
     cache = {}
     noise = stream(scenario.seed, "feeder-noise").normal(0, scenario.noise_a, (n, 2, 3))
     previous_closed = [True, True]
+    dc_amplitude = np.zeros((2, 3))
+    previous_fault = False
+    actual_inception = None
     for k, t in enumerate(time):
         for b in breakers:
             b.update(t)
@@ -203,6 +206,15 @@ def run(scenario):
         if state not in cache:
             cache[state] = equilibrium(scenario, *state[:2], fault_active=state[2])
         network = cache[state]
+        if state[2] and not previous_fault:
+            actual_inception = t
+            if k and scenario.dc_tau_s > 0:
+                for index, name in enumerate(("primary", "backup")):
+                    dc_amplitude[index] = np.sqrt(2) * np.real(
+                        (true_current[k - 1, index] - network["branch_current"][name])
+                        * np.exp(2j * np.pi * scenario.frequency_hz * t)
+                    )
+        previous_fault = state[2]
         voltage[k] = network["voltage"]["junction"]
         for index, name in enumerate(("primary", "backup")):
             current = network["branch_current"][name]
@@ -211,6 +223,8 @@ def run(scenario):
                 np.sqrt(2) * np.real(current * np.exp(2j * np.pi * scenario.frequency_hz * t))
                 + noise[k, index]
             )
+            if state[2] and actual_inception is not None and scenario.dc_tau_s > 0 and state[index]:
+                waves[k, index] += dc_amplitude[index] * np.exp(-(t - actual_inception) / scenario.dc_tau_s)
             estimate = windows[index].update(t, waves[k, index])
             if scenario.instrumented:
                 ct_flux[k, index] = [state.flux for state in windows[index].states]

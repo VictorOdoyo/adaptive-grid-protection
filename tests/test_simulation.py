@@ -46,3 +46,13 @@ def test_adc_clipping_blocks_closed_loop_trip_instead_of_using_fake_phasor():
     assert np.any(result["adc_clipped"])
     assert not np.any(result["valid"][500:, 0])
     assert not any(e["event"] == "trip" for e in result["events"])
+
+
+def test_dc_offset_changes_measured_fault_window_and_stops_after_opening():
+    scenario = m.Scenario(dc_tau_s=0.04, duration_s=0.5)
+    result = m.run(scenario)
+    plain = m.run(m.Scenario(duration_s=0.5))
+    assert np.max(abs(result["current_wave_a"] - plain["current_wave_a"])) > 100
+    opened = next(e["time_s"] for e in result["events"] if e["event"] == "open")
+    after = result["time_s"] > opened + 1 / scenario.sample_hz
+    assert np.all(result["current_wave_a"][after, 0] == 0)
