@@ -80,3 +80,17 @@ def test_mimic_cancels_matching_dc_exponential_and_exposes_phase_shift():
     assert np.max(abs(result["values"][1:])) < 1e-12
     assert abs(result["response"]) == pytest.approx(1)
     assert abs(np.angle(result["response"])) > 1
+
+
+def test_streaming_fourier_matches_batch_and_forgets_bad_samples():
+    from protectlab.waveforms import synthesize
+
+    t = np.arange(300) / 3200
+    expected = np.array([10 + 1j, 2 - 3j, 4j])
+    v = synthesize(t, expected)
+    window = m.FourierWindow()
+    outputs = [window.update(ti, vi) for ti, vi in zip(t, v, strict=True)]
+    assert outputs[62] is None
+    assert np.allclose(outputs[63], expected)
+    assert np.allclose(outputs[-1], expected)
+    assert len(window.samples) == 64

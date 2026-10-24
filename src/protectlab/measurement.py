@@ -137,3 +137,34 @@ def mimic(values, sample_hz, tau_s, nominal_hz=50):
     out = np.zeros_like(v)
     out[1:] = (v[1:] - decay * v[:-1]) / abs(gain)
     return {"values": out, "response": gain / abs(gain), "valid": np.arange(len(v)) > 0}
+
+
+class FourierWindow:
+    def __init__(self, sample_hz=3200, frequency_hz=50):
+        from collections import deque
+
+        from .core import positive
+
+        self.fs = positive(sample_hz)
+        self.frequency = positive(frequency_hz)
+        self.count = round(self.fs / self.frequency)
+        if self.count < 4 or abs(self.count * self.frequency - self.fs) > 1e-9 * self.fs:
+            raise ValueError("integer cycle with at least four samples required")
+        self.samples = deque(maxlen=self.count)
+        self.times = deque(maxlen=self.count)
+
+    def update(self, time_s, value, valid=True):
+        from .core import finite
+
+        value = finite(value, real=True)
+        if self.times and abs(time_s - self.times[-1] - 1 / self.fs) > 1e-8 / self.fs:
+            raise ValueError("contiguous uniform stream required")
+        if not np.isfinite(time_s):
+            raise ValueError("finite sample time required")
+        self.times.append(float(time_s))
+        self.samples.append((value.copy(), bool(valid)))
+        if len(self.samples) < self.count or not all(item[1] for item in self.samples):
+            return None
+        v = np.array([item[0] for item in self.samples])
+        phase = np.exp(-2j * np.pi * self.frequency * np.asarray(self.times))
+        return np.sqrt(2) / self.count * np.tensordot(phase, v, axes=(0, 0))
