@@ -40,3 +40,20 @@ def mho(impedance, reach_ohm, valid=True, forward=True):
         & np.asarray(forward, bool)
         & (abs(z - reach / 2) <= abs(reach) / 2 * (1 + 1e-12))
     )
+
+
+def polygon(impedance, vertices, valid=True):
+    from .core import finite
+
+    z = finite(impedance)
+    points = finite(vertices, ndim=1)
+    if len(points) < 3:
+        raise ValueError("at least three polygon vertices required")
+    edge = np.roll(points, -1) - points
+    turn = np.imag(np.conj(edge) * np.roll(edge, -1))
+    if np.any(abs(edge) < 1e-12) or not (np.all(turn > 0) or np.all(turn < 0)):
+        raise ValueError("strictly convex ordered polygon required")
+    cross = np.imag(np.conj(edge) * (z[..., None] - points))
+    tolerance = 1e-12 * max(1, float(np.max(abs(points))) ** 2)
+    inside = np.all(cross >= -tolerance, axis=-1) | np.all(cross <= tolerance, axis=-1)
+    return np.asarray(valid, bool) & inside

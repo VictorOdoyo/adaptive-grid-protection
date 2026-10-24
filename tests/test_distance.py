@@ -30,3 +30,11 @@ def test_mho_characteristic_has_forward_and_observability_supervision():
     assert not m.mho(1.2 * reach, reach)
     assert not m.mho(0, reach, valid=False)
     assert not m.mho(0.5 * reach, reach, forward=False)
+
+
+def test_quadrilateral_can_extend_resistive_reach_without_reactive_overreach():
+    vertices = [-1 + 0j, 8 + 0j, 8 + 5j, -1 + 5j]
+    assert m.polygon(6 + 3j, vertices)
+    assert not m.polygon(6 + 6j, vertices)
+    with pytest.raises(ValueError):
+        m.polygon(1, [0, 2 + 2j, 2, 2j])
