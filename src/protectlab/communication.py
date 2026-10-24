@@ -73,3 +73,8 @@ class Receiver:
         if self.message is None or not 0 <= now_s - self.message["sent_s"] <= self.maximum_age:
             return None
         return self.message["payload"].copy()
+
+
+def permissive_trip(local_forward, local_pickup, remote_payload, channel_valid=True):
+    remote = bool(channel_valid and isinstance(remote_payload, dict) and remote_payload.get("permit") is True)
+    return bool(local_forward and local_pickup and remote)

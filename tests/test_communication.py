@@ -20,3 +20,10 @@ def test_receiver_requires_fresh_monotonic_remote_message():
     assert not receiver.accept(msg, 0.11)
     assert receiver.latest(0.121) is None
     assert not receiver.accept({**msg, "sender": "wrong", "sequence": 3}, 0.11)
+
+
+def test_permissive_pilot_cannot_trip_on_remote_message_without_local_pickup():
+    assert m.permissive_trip(True, True, {"permit": True})
+    assert not m.permissive_trip(False, True, {"permit": True})
+    assert not m.permissive_trip(True, False, {"permit": True})
+    assert not m.permissive_trip(True, True, None)
