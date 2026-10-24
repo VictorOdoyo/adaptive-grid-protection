@@ -50,3 +50,10 @@ def phase_matrix(sequence_impedances):
     if values.shape != (3,):
         raise ValueError("three sequence impedances required")
     return SEQUENCE @ np.diag(values) @ np.linalg.inv(SEQUENCE)
+
+
+def power(voltage, current):
+    v, i = np.broadcast_arrays(finite(voltage), finite(current))
+    if v.shape[-1] != 3:
+        raise ValueError("three-phase final axis required")
+    return np.sum(v * np.conj(i), axis=-1)

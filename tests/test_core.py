@@ -29,3 +29,9 @@ def test_phase_impedance_preserves_sequence_network():
     z = np.array([3 + 8j, 1 + 2j, 1 + 2j])
     current = np.array([2 + 1j, 4, 3j])
     assert np.allclose(m.seq(m.phase_matrix(z) @ m.abc(current)), z * current)
+
+
+def test_rms_power_has_no_peak_phasor_half_factor():
+    v = m.abc([0, 230, 0])
+    i = m.abc([0, 10 - 2j, 0])
+    assert m.power(v, i) == pytest.approx(6900 + 1380j)
