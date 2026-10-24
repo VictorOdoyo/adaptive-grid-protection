@@ -26,3 +26,10 @@ def test_negative_sequence_direction_requires_observable_negative_sequence():
     assert not healthy["valid"]
     result = m.negative_sequence(abc([0, 100, -5]), abc([0, 10, np.exp(-1.2j)]))
     assert result["forward"]
+
+
+def test_residual_direction_uses_relay_into_line_current_sign():
+    current = np.ones(3) * np.exp(-1.2j)
+    result = m.residual([-2, -2, -2], current)
+    assert result["forward"]
+    assert m.residual([-2, -2, -2], -current)["reverse"]

@@ -50,3 +50,12 @@ def negative_sequence(voltage_abc, current_abc, impedance_angle_rad=1.2, minimum
     v2 = seq(voltage_abc)[..., 2]
     i2 = seq(current_abc)[..., 2]
     return torque(-v2, i2, impedance_angle_rad, minimum_current=minimum_current_a)
+
+
+def residual(voltage_abc, current_abc, maximum_torque_rad=1.2):
+    from .core import finite
+
+    v, i = finite(voltage_abc), finite(current_abc)
+    if v.shape[-1] != 3 or i.shape[-1] != 3:
+        raise ValueError("three-phase terminal values required")
+    return torque(-np.sum(v, axis=-1), np.sum(i, axis=-1), maximum_torque_rad)
