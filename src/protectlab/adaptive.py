@@ -64,3 +64,40 @@ class Group:
         return hashlib.sha256(
             json.dumps(self.to_dict(), sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
+
+
+def certify(group, currents_a, pairs, grading_s=0.2, breaker_s=0.04):
+    import hashlib
+    import json
+
+    from .coordination import audit
+    from .core import finite
+
+    currents = finite(currents_a, real=True, ndim=2)
+    result = audit(currents, group.pickups_a, group.multipliers, pairs, group.curve, grading_s, breaker_s)
+    if not result["coordinated"]:
+        raise ValueError("setting group fails its modeled fault envelope")
+    envelope = {
+        "currents_a": currents.tolist(),
+        "pairs": list(pairs),
+        "grading_s": grading_s,
+        "breaker_s": breaker_s,
+    }
+    seal = hashlib.sha256(json.dumps(envelope, sort_keys=True).encode()).hexdigest()
+    return {
+        "group_sha256": group.digest(),
+        "envelope_sha256": seal,
+        "envelope": envelope,
+        "rows": result["rows"],
+    }
+
+
+def verify_certificate(group, certificate):
+    try:
+        envelope = certificate["envelope"]
+        expected = certify(
+            group, envelope["currents_a"], envelope["pairs"], envelope["grading_s"], envelope["breaker_s"]
+        )
+        return expected == certificate
+    except (ValueError, KeyError, TypeError):
+        return False

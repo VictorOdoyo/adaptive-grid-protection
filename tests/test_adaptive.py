@@ -23,3 +23,12 @@ def test_setting_group_is_immutable_and_revision_changes_content_digest():
     assert group.digest() != replace(group, revision=2).digest()
     with pytest.raises(Exception):
         group.name = "tampered"
+
+
+def test_coordination_certificate_cannot_be_reused_for_changed_pickup():
+    from dataclasses import replace
+
+    group = m.Group("normal", "hash", 1, (100, 100), (0.05, 0.2))
+    certificate = m.certify(group, [[500, 500]], [(0, 0, 1)])
+    assert m.verify_certificate(group, certificate)
+    assert not m.verify_certificate(replace(group, pickups_a=(600, 100)), certificate)
