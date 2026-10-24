@@ -100,3 +100,9 @@ def test_thd_marks_missing_fundamental_as_invalid():
     r = m.thd([10, 0], [[3, 1], [4, 2]])
     assert r["ratio"][0] == pytest.approx(0.5)
     assert np.array_equal(r["valid"], [True, False])
+
+
+def test_residual_current_is_three_times_zero_sequence():
+    r = m.quantities([1, 1, 1], [3, 0, 0])
+    assert r["i0"] == pytest.approx(1)
+    assert r["residual_current"] == pytest.approx(3)

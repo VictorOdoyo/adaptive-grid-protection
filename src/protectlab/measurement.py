@@ -180,3 +180,19 @@ def thd(fundamental, harmonics, minimum_a=1e-6):
     valid = base >= positive(minimum_a)
     ratio = np.divide(np.sqrt(np.sum(abs(higher) ** 2, axis=0)), base, out=np.zeros_like(base), where=valid)
     return {"ratio": ratio, "valid": valid}
+
+
+def quantities(voltage, current):
+    from .core import seq
+
+    v, i = seq(voltage), seq(current)
+    return {
+        "v0": v[..., 0],
+        "v1": v[..., 1],
+        "v2": v[..., 2],
+        "i0": i[..., 0],
+        "i1": i[..., 1],
+        "i2": i[..., 2],
+        "residual_current": 3 * i[..., 0],
+        "residual_voltage": 3 * v[..., 0],
+    }
