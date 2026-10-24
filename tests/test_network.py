@@ -63,3 +63,12 @@ def test_complex_power_balance_includes_finite_ground_fault_resistor():
     balance = m.power_balance(result, [line], [source], fault=fault)
     assert abs(balance["defect_va"]) < 1e-8
     assert balance["fault_w"] > 0
+
+
+def test_line_split_preserves_unfaulted_terminal_solution():
+    source = m.balanced_source("g", "a", 230, 1j, 1j)
+    line = m.Branch("l", "a", "b", np.eye(3) * (1 + 2j))
+    original = m.solve(["a", "b"], [line], [source], {"b": np.eye(3) / 10})
+    buses, lines = m.split_line(["a", "b"], [line], "l", 0.37)
+    divided = m.solve(buses, lines, [source], {"b": np.eye(3) / 10})
+    assert np.allclose(original["voltage"]["b"], divided["voltage"]["b"])

@@ -186,3 +186,20 @@ def power_balance(solution, branches, sources, shunts=None, injections=None, fau
         "fault_w": fault_loss,
         "defect_va": input_power - line_loss - load - fault_loss,
     }
+
+
+def split_line(buses, branches, name, fraction, fault_bus="fault"):
+    from dataclasses import replace
+
+    if not 0 < fraction < 1 or fault_bus in buses:
+        raise ValueError("interior fraction and new fault bus required")
+    matches = [b for b in branches if b.name == name]
+    if len(matches) != 1:
+        raise ValueError("one named line required")
+    line = matches[0]
+    result = [b for b in branches if b.name != name]
+    result += [
+        replace(line, name=name + "__near", end=fault_bus, z=line.z * fraction),
+        replace(line, name=name + "__far", start=fault_bus, z=line.z * (1 - fraction)),
+    ]
+    return (*buses, fault_bus), result
