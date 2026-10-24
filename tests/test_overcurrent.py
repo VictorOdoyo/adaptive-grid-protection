@@ -46,3 +46,11 @@ def test_balanced_load_does_not_pick_up_residual_earth_element():
 def test_voltage_restraint_is_bounded_and_reduces_fault_pickup():
     pickup = m.voltage_restrained_pickup([0, 0.5, 1, 1.2], 100)
     assert np.allclose(pickup, [25, 50, 100, 100])
+
+
+def test_overcurrent_replay_counts_only_valid_intervals():
+    t = np.arange(101) * 0.001
+    q = np.ones(101, bool)
+    q[:30] = False
+    result = m.replay(t, np.ones(101) * 200, m.DefiniteRelay(100, 0.02), q)
+    assert result["trip_time_s"] == pytest.approx(0.049)

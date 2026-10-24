@@ -114,3 +114,23 @@ def voltage_restrained_pickup(voltage_pu, nominal_pickup_a, minimum_fraction=0.2
     if np.any(voltage < 0) or not 0 < minimum_fraction <= 1:
         raise ValueError("nonnegative voltage and restraint floor in (0,1] required")
     return positive(nominal_pickup_a) * np.clip(voltage, minimum_fraction, 1.0)
+
+
+def replay(time, measured_a, relay, valid=None, blocked=None):
+    from .core import finite, timebase
+
+    t = timebase(time)
+    current = finite(measured_a, real=True, ndim=1)
+    quality = np.ones(len(t), bool) if valid is None else np.asarray(valid)
+    inhibit = np.zeros(len(t), bool) if blocked is None else np.asarray(blocked)
+    if current.shape != t.shape or quality.shape != t.shape or inhibit.shape != t.shape:
+        raise ValueError("aligned measurement and supervision trajectories required")
+    if quality.dtype != bool or inhibit.dtype != bool:
+        raise ValueError("boolean supervision masks required")
+    trip = np.zeros(len(t), bool)
+    travel = np.zeros(len(t))
+    for k in range(1, len(t)):
+        trip[k] = relay.update(current[k], t[k] - t[k - 1], quality[k], inhibit[k])
+        travel[k] = relay.travel if hasattr(relay, "travel") else relay.elapsed
+    indices = np.flatnonzero(trip)
+    return {"trip": trip, "travel": travel, "trip_time_s": None if not len(indices) else float(t[indices[0]])}
