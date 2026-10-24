@@ -40,3 +40,8 @@ def test_rms_power_has_no_peak_phasor_half_factor():
 def test_three_phase_bases_preserve_per_phase_ohms():
     b = m.bases(1e6, 11000)
     assert b["impedance_ohm"] == pytest.approx(b["phase_voltage_v"] / b["current_a"])
+
+
+def test_named_streams_are_repeatable_and_distinct():
+    assert np.array_equal(m.stream(42, "adc").normal(size=8), m.stream(42, "adc").normal(size=8))
+    assert not np.array_equal(m.stream(42, "adc").normal(size=8), m.stream(42, "ct").normal(size=8))

@@ -68,3 +68,13 @@ def bases(power_va, line_voltage_v):
         "current_a": s / (np.sqrt(3) * v),
         "impedance_ohm": v * v / s,
     }
+
+
+def stream(seed, name):
+    import hashlib
+
+    integer(seed, 0)
+    if seed >= 2**32 or not isinstance(name, str):
+        raise ValueError("32-bit seed and named stream required")
+    key = int.from_bytes(hashlib.sha256(name.encode()).digest()[:8], "little")
+    return np.random.default_rng(np.random.SeedSequence([seed, key]))
