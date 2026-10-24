@@ -72,3 +72,12 @@ def test_line_split_preserves_unfaulted_terminal_solution():
     buses, lines = m.split_line(["a", "b"], [line], "l", 0.37)
     divided = m.solve(buses, lines, [source], {"b": np.eye(3) / 10})
     assert np.allclose(original["voltage"]["b"], divided["voltage"]["b"])
+
+
+def test_resistive_floating_star_three_phase_fault_matches_balanced_reference():
+    source = m.balanced_source("g", "a", 230, 3 + 4j, 1 + 2j)
+    fault = m.fault_connection(["a"], "a", "abc", 2)
+    result = m.solve(["a"], [], [source], fault=fault)
+    current = m.currents(result, [], [source])["sources"]["g"]
+    assert current[0] == pytest.approx(230 / (3 + 2j))
+    assert abs(m.power_balance(result, [], [source], fault=fault)["defect_va"]) < 1e-8

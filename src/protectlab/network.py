@@ -103,7 +103,8 @@ def solve(buses, branches, sources=(), shunts=None, injections=None, fault=None)
         resistance = fault["resistance_ohm"]
         if f.shape[1] != len(j):
             raise ValueError("fault connection does not match network")
-        matrix = np.block([[y, f.T], [f, -np.eye(len(f)) * resistance]])
+        resistor = resistance * (f @ f.T if fault["kind"] == "abc" else np.eye(len(f)))
+        matrix = np.block([[y, f.T], [f, -resistor]])
         rhs = np.r_[j, np.zeros(len(f))]
     try:
         solution = np.linalg.solve(matrix, rhs)
@@ -178,7 +179,13 @@ def power_balance(solution, branches, sources, shunts=None, injections=None, fau
     load = sum(
         power(solution["voltage"][bus], g @ solution["voltage"][bus]) for bus, g in (shunts or {}).items()
     )
-    fault_loss = 0 if fault is None else fault["resistance_ohm"] * np.sum(abs(solution["fault_current"]) ** 2)
+    fault_loss = 0
+    if fault is not None:
+        current = solution["fault_current"]
+        metric = (
+            fault["connection"] @ fault["connection"].T if fault["kind"] == "abc" else np.eye(len(current))
+        )
+        fault_loss = fault["resistance_ohm"] * float(np.vdot(current, metric @ current).real)
     return {
         "input_va": input_power,
         "line_va": line_loss,
