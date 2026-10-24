@@ -39,3 +39,37 @@ class Channel:
 
     def receive(self, time_s):
         return [event["payload"] for event in self.queue.until(time_s)]
+
+
+class Receiver:
+    def __init__(self, sender="remote", maximum_age_s=0.02):
+        from .core import positive
+
+        self.sender = sender
+        self.maximum_age = positive(maximum_age_s)
+        self.sequence = 0
+        self.message = None
+
+    def accept(self, message, now_s):
+        from copy import deepcopy
+
+        try:
+            age = now_s - message["sent_s"]
+            valid = (
+                message["sender"] == self.sender
+                and type(message["sequence"]) is int
+                and message["sequence"] > self.sequence
+                and 0 <= age <= self.maximum_age
+            )
+        except (KeyError, TypeError):
+            return False
+        if not valid or not np.isfinite(age):
+            return False
+        self.sequence = message["sequence"]
+        self.message = deepcopy(message)
+        return True
+
+    def latest(self, now_s):
+        if self.message is None or not 0 <= now_s - self.message["sent_s"] <= self.maximum_age:
+            return None
+        return self.message["payload"].copy()

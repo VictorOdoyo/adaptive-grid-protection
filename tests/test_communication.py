@@ -11,3 +11,12 @@ def test_channel_applies_latency_and_snapshots_payload():
     lost = m.Channel(loss_probability=1)
     assert not lost.send(0, {})
     assert lost.receive(1) == []
+
+
+def test_receiver_requires_fresh_monotonic_remote_message():
+    receiver = m.Receiver()
+    msg = {"sender": "remote", "sequence": 2, "sent_s": 0.1, "payload": {"permit": True}}
+    assert receiver.accept(msg, 0.11)
+    assert not receiver.accept(msg, 0.11)
+    assert receiver.latest(0.121) is None
+    assert not receiver.accept({**msg, "sender": "wrong", "sequence": 3}, 0.11)
