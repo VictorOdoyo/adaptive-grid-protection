@@ -51,3 +51,13 @@ def test_distance_zones_keep_separate_reach_and_time():
     assert zones.update(6j, 0.01)[1]
     immediate = m.Zones([4j], [0])
     assert immediate.update(2j, 0.001)[0]
+
+
+def test_swing_blinders_distinguish_slow_entry_from_fault_jump():
+    slow = m.SwingBlock(10, 5, 0.04)
+    for z in [12, 9, 8, 7, 6, 4]:
+        blocked = slow.update(z, 0.02)
+    assert blocked
+    fast = m.SwingBlock(10, 5, 0.04)
+    assert not fast.update(12, 0.001)
+    assert not fast.update(3, 0.001)

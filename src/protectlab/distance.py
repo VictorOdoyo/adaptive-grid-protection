@@ -95,3 +95,35 @@ class Zones:
         self.elapsed = np.where(picked, self.elapsed + dt, 0.0)
         self.trip |= picked & (self.elapsed >= self.delays - 1e-12)
         return self.trip.copy()
+
+
+class SwingBlock:
+    def __init__(self, outer_ohm, inner_ohm, minimum_transit_s=0.04):
+        from .core import positive
+
+        self.outer = positive(outer_ohm)
+        self.inner = positive(inner_ohm)
+        self.minimum = positive(minimum_transit_s)
+        if self.inner >= self.outer:
+            raise ValueError("ordered inner and outer blinder radii required")
+        self.elapsed = 0.0
+        self.entered = False
+        self.blocked = False
+
+    def update(self, impedance, dt_s, valid=True):
+        from .core import positive
+
+        dt = positive(dt_s)
+        radius = abs(impedance)
+        if not valid or not np.isfinite(radius) or radius > self.outer:
+            self.elapsed = 0.0
+            self.entered = False
+            self.blocked = False
+        elif not self.entered:
+            self.entered = True
+            self.elapsed = 0.0
+        else:
+            self.elapsed += dt
+        if self.entered and radius < self.inner:
+            self.blocked = self.elapsed >= self.minimum
+        return self.blocked
