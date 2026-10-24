@@ -1,5 +1,7 @@
 from dataclasses import asdict, dataclass
 
+import numpy as np
+
 
 @dataclass(frozen=True)
 class Scenario:
@@ -77,3 +79,50 @@ class Scenario:
 
     def to_dict(self):
         return asdict(self)
+
+
+def feeder(scenario, primary_closed=True, backup_closed=True):
+    from .core import phase_matrix
+    from .inverters import Inverter
+    from .network import Branch, balanced_source
+
+    buses = ("source", "junction", "load")
+    sources = [
+        balanced_source(
+            "grid",
+            "source",
+            11000 / np.sqrt(3),
+            scenario.source_factor * (0.5 + 3j),
+            scenario.source_factor * (0.3 + 1j),
+        )
+    ]
+    branches = [
+        Branch(
+            "backup", "source", "junction", phase_matrix([0.5 + 1.5j, 0.2 + 0.6j, 0.2 + 0.6j]), backup_closed
+        ),
+        Branch(
+            "primary", "junction", "load", phase_matrix([1.2 + 3.6j, 0.4 + 1.2j, 0.4 + 1.2j]), primary_closed
+        ),
+    ]
+    shunts = {"load": np.eye(3) / 300}
+    inverters = (
+        []
+        if scenario.inverter_current_a == 0
+        else [
+            Inverter(
+                "pv",
+                "load",
+                scenario.inverter_current_a,
+                11000 / np.sqrt(3),
+                limit_pu=scenario.inverter_limit_pu,
+                negative_gain=scenario.negative_gain,
+            )
+        ]
+    )
+    return {
+        "buses": buses,
+        "branches": branches,
+        "sources": sources,
+        "shunts": shunts,
+        "inverters": inverters,
+    }
