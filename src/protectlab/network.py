@@ -210,3 +210,24 @@ def split_line(buses, branches, name, fraction, fault_bus="fault"):
         replace(line, name=name + "__far", start=fault_bus, z=line.z * (1 - fraction)),
     ]
     return (*buses, fault_bus), result
+
+
+def energized(buses, branches, sources):
+    buses = set(buses)
+    reached = {s.bus for s in sources}
+    if not reached <= buses:
+        raise ValueError("unknown source bus")
+    adjacency = {bus: set() for bus in buses}
+    for branch in branches:
+        if branch.start not in buses or branch.end not in buses:
+            raise ValueError("unknown branch endpoint")
+        if branch.closed:
+            adjacency[branch.start].add(branch.end)
+            adjacency[branch.end].add(branch.start)
+    queue = list(reached)
+    while queue:
+        node = queue.pop()
+        for neighbor in adjacency[node] - reached:
+            reached.add(neighbor)
+            queue.append(neighbor)
+    return reached

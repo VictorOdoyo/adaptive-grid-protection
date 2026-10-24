@@ -81,3 +81,12 @@ def test_resistive_floating_star_three_phase_fault_matches_balanced_reference():
     current = m.currents(result, [], [source])["sources"]["g"]
     assert current[0] == pytest.approx(230 / (3 + 2j))
     assert abs(m.power_balance(result, [], [source], fault=fault)["defect_va"]) < 1e-8
+
+
+def test_open_breaker_separates_unenergized_downstream_bus():
+    from dataclasses import replace
+
+    source = m.balanced_source("g", "a", 230, 1j, 1j)
+    branch = m.Branch("l", "a", "b", np.eye(3))
+    assert m.energized(["a", "b"], [branch], [source]) == {"a", "b"}
+    assert m.energized(["a", "b"], [replace(branch, closed=False)], [source]) == {"a"}
