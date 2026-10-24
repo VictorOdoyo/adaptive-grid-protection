@@ -50,3 +50,16 @@ def test_true_rms_includes_harmonic_energy():
     result = m.sliding_rms(wave, 200)
     assert np.allclose(result["rms"][199:], np.sqrt(116))
     assert not result["valid"][0]
+
+
+def test_joint_fit_recovers_off_nominal_harmonics_and_dc():
+    from protectlab.waveforms import harmonics
+
+    t = np.linspace(0.003, 0.039, 250)
+    expected = np.array([10 + 2j, 8 - 3j, 4j])
+    wave = harmonics(t, {1: expected, 2: expected * 0.2}, 49.3) + 3
+    result = m.least_squares(t, wave, 49.3, orders=(1, 2))
+    assert np.allclose(result["phasors"][1], expected)
+    assert np.allclose(result["phasors"][2], expected * 0.2)
+    assert np.allclose(result["dc"], 3)
+    assert result["residual"] < 1e-12

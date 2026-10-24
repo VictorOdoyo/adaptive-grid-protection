@@ -81,3 +81,33 @@ def sliding_rms(values, window):
     result[count - 1 :] = np.sqrt(np.maximum(0, (cumulative[count:] - cumulative[:-count]) / count))
     valid = np.arange(len(v)) >= count - 1
     return {"rms": result, "valid": valid}
+
+
+def least_squares(time, values, frequency_hz=50, orders=(1, 2, 3), dc=True):
+    from .core import finite, integer, positive, timebase
+
+    t = timebase(time)
+    v = finite(values, real=True)
+    if v.shape[0] != len(t) or not orders or len(set(orders)) != len(orders):
+        raise ValueError("aligned samples and unique harmonic orders required")
+    columns = [np.ones(len(t))] if dc else []
+    for order in orders:
+        integer(order)
+        phase = 2 * np.pi * positive(frequency_hz) * order * t
+        columns.extend([np.cos(phase), np.sin(phase)])
+    design = np.column_stack(columns)
+    if len(t) < len(columns) or np.linalg.matrix_rank(design) != len(columns):
+        raise ValueError("insufficient independent measurement times")
+    coefficient = np.linalg.lstsq(design, v, rcond=None)[0]
+    offset = int(dc)
+    phasors = {
+        order: (coefficient[offset + 2 * k] - 1j * coefficient[offset + 2 * k + 1]) / np.sqrt(2)
+        for k, order in enumerate(orders)
+    }
+    residual = float(np.linalg.norm(design @ coefficient - v) / max(np.linalg.norm(v), 1e-30))
+    return {
+        "phasors": phasors,
+        "dc": coefficient[0] if dc else np.zeros(v.shape[1:]),
+        "residual": residual,
+        "condition": float(np.linalg.cond(design)),
+    }
