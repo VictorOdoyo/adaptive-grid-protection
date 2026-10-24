@@ -29,3 +29,35 @@ def excitation(flux_vs, model):
         np.minimum(magnitude, model.knee_vs) / model.magnetizing_h
         + np.maximum(0, magnitude - model.knee_vs) / model.saturated_h
     )
+
+
+def simulate(time, primary_a, model=None, initial_flux_vs=0.0):
+    from .core import finite, timebase
+
+    t = timebase(time)
+    primary = finite(primary_a, real=True, ndim=1)
+    model = CT() if model is None else model
+    if primary.shape != t.shape or not np.isfinite(initial_flux_vs):
+        raise ValueError("aligned real primary samples and finite initial flux required")
+    flux = np.empty(len(t))
+    flux[0] = initial_flux_vs
+    for k, dt in enumerate(np.diff(t), 1):
+        h = dt * model.burden_ohm
+        rhs = flux[k - 1] + h * primary[k] / model.ratio
+        linear = rhs / (1 + h / model.magnetizing_h)
+        if abs(linear) <= model.knee_vs:
+            flux[k] = linear
+        else:
+            flux[k] = (
+                np.sign(rhs)
+                * (abs(rhs) + h * model.knee_vs * (1 / model.saturated_h - 1 / model.magnetizing_h))
+                / (1 + h / model.saturated_h)
+            )
+    magnetizing = excitation(flux, model)
+    secondary = primary / model.ratio - magnetizing
+    return {
+        "secondary_a": secondary,
+        "flux_vs": flux,
+        "magnetizing_a": magnetizing,
+        "saturated": abs(flux) > model.knee_vs,
+    }
