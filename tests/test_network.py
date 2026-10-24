@@ -25,3 +25,11 @@ def test_branch_stamp_has_gauge_nullspace_without_ground_source():
     y, j, _ = m.admittance(["a", "b"], [line])
     assert np.allclose(y @ np.ones(6), 0)
     assert np.all(j == 0)
+
+
+def test_network_load_voltage_matches_independent_scalar_divider():
+    source = m.balanced_source("grid", "a", 230, 1, 1)
+    line = m.Branch("line", "a", "b", np.eye(3))
+    result = m.solve(["a", "b"], [line], [source], {"b": np.eye(3) / 8})
+    assert abs(result["voltage"]["b"][0]) == pytest.approx(184)
+    assert result["residual"] < 1e-12

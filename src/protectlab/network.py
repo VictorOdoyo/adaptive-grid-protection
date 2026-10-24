@@ -86,3 +86,35 @@ def admittance(buses, branches, sources=(), shunts=None):
             raise ValueError("passive 3x3 shunt at known bus required")
         y[indices[bus], indices[bus]] += g
     return y, injection, indices
+
+
+def solve(buses, branches, sources=(), shunts=None, injections=None, fault=None):
+    y, j, indices = admittance(buses, branches, sources, shunts)
+    for bus, current in (injections or {}).items():
+        from .core import finite
+
+        current = finite(current)
+        if bus not in indices or current.shape != (3,):
+            raise ValueError("three-phase injection at known bus required")
+        j[indices[bus]] += current
+    matrix, rhs = y, j
+    if fault is not None:
+        f = fault["connection"]
+        resistance = fault["resistance_ohm"]
+        if f.shape[1] != len(j):
+            raise ValueError("fault connection does not match network")
+        matrix = np.block([[y, f.T], [f, -np.eye(len(f)) * resistance]])
+        rhs = np.r_[j, np.zeros(len(f))]
+    try:
+        solution = np.linalg.solve(matrix, rhs)
+    except np.linalg.LinAlgError as error:
+        raise ValueError("singular network: check grounding and energized connectivity") from error
+    residual = float(np.linalg.norm(matrix @ solution - rhs) / max(np.linalg.norm(rhs), 1e-30))
+    if not np.all(np.isfinite(solution)) or residual > 1e-8:
+        raise RuntimeError("network solution did not satisfy KCL")
+    voltage = solution[: len(j)]
+    return {
+        "voltage": {bus: voltage[s].copy() for bus, s in indices.items()},
+        "fault_current": solution[len(j) :].copy(),
+        "residual": residual,
+    }
