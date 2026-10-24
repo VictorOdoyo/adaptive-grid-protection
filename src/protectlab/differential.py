@@ -49,3 +49,27 @@ def compensate(current, ratio=1.0, clock=0, remove_zero_sequence=False):
     if remove_zero_sequence:
         i = i - np.mean(i, axis=-1, keepdims=True)
     return i * positive(ratio) * np.exp(-1j * clock * np.pi / 6)
+
+
+def supervised(
+    left,
+    right,
+    left_time_s,
+    right_time_s,
+    now_s,
+    maximum_skew_s=0.001,
+    maximum_age_s=0.02,
+    valid=True,
+    blocked=False,
+    **settings,
+):
+    from .core import positive
+
+    skew = positive(maximum_skew_s)
+    age = positive(maximum_age_s)
+    times = np.array([left_time_s, right_time_s, now_s])
+    usable = bool(valid) and np.all(np.isfinite(times)) and abs(left_time_s - right_time_s) <= skew
+    usable = usable and min(now_s - left_time_s, now_s - right_time_s) >= 0
+    usable = usable and max(now_s - left_time_s, now_s - right_time_s) <= age
+    result = characteristic(left, right, **settings)
+    return {**result, "valid": usable, "trip": result["pickup"] & usable & ~np.asarray(blocked, bool)}

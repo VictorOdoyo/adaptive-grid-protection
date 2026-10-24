@@ -30,3 +30,10 @@ def test_transformer_compensation_aligns_ratio_clock_and_blocks_zero_sequence():
     current = abc([4, 100 * np.exp(1j * np.pi / 6), 0]) / 2
     result = m.compensate(current, 2, 1, True)
     assert np.allclose(seq(result), [0, 100, 0], atol=1e-12)
+
+
+def test_stale_or_skewed_differential_channel_blocks_trip():
+    assert m.supervised(100, 100, 0.1, 0.1, 0.1)["trip"]
+    assert not m.supervised(100, 100, 0.1, 0.11, 0.11)["trip"]
+    assert not m.supervised(100, 100, 0.1, 0.1, 0.2)["trip"]
+    assert not m.supervised(100, 100, 0.2, 0.2, 0.1)["trip"]
