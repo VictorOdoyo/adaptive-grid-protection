@@ -168,3 +168,15 @@ class FourierWindow:
         v = np.array([item[0] for item in self.samples])
         phase = np.exp(-2j * np.pi * self.frequency * np.asarray(self.times))
         return np.sqrt(2) / self.count * np.tensordot(phase, v, axes=(0, 0))
+
+
+def thd(fundamental, harmonics, minimum_a=1e-6):
+    from .core import finite, positive
+
+    base = abs(finite(fundamental))
+    higher = finite(harmonics)
+    if higher.shape[1:] != base.shape:
+        raise ValueError("harmonic axis followed by fundamental channel shape required")
+    valid = base >= positive(minimum_a)
+    ratio = np.divide(np.sqrt(np.sum(abs(higher) ** 2, axis=0)), base, out=np.zeros_like(base), where=valid)
+    return {"ratio": ratio, "valid": valid}

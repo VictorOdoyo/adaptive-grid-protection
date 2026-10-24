@@ -94,3 +94,9 @@ def test_streaming_fourier_matches_batch_and_forgets_bad_samples():
     assert np.allclose(outputs[63], expected)
     assert np.allclose(outputs[-1], expected)
     assert len(window.samples) == 64
+
+
+def test_thd_marks_missing_fundamental_as_invalid():
+    r = m.thd([10, 0], [[3, 1], [4, 2]])
+    assert r["ratio"][0] == pytest.approx(0.5)
+    assert np.array_equal(r["valid"], [True, False])
