@@ -85,3 +85,22 @@ def test_primary_opening_also_removes_upstream_fault_offset_tail():
     opened = next(e["time_s"] for e in result["events"] if e["event"] == "open")
     after = result["time_s"] > opened + 2 / 3200
     assert np.max(abs(result["current_wave_a"][after])) < 1e-6
+
+
+def test_directional_supervision_exposes_inverter_torque_ambiguity_without_truth_gating():
+    from dataclasses import replace
+
+    scenario = m.Scenario(fault_bus="junction", inverter_current_a=1000, duration_s=0.8)
+    directional = m.run(scenario)
+    blind = m.run(replace(scenario, directional=False))
+    before = (directional["time_s"] > 0.04) & (directional["time_s"] < scenario.inception_s)
+    assert not np.any(directional["forward"][before, 0])
+
+    def trip_time(result):
+        return next(
+            e["time_s"] for e in result["events"] if e["event"] == "trip" and e["device"] == "primary"
+        )
+
+    # Controlled-inverter fault current can defeat conventional torque interpretation.
+    assert trip_time(directional) > trip_time(blind)
+    assert any(e["event"] == "open" and e["device"] == "backup" for e in directional["events"])

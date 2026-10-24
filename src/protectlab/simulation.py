@@ -20,6 +20,7 @@ class Scenario:
     opening_s: float = 0.04
     primary_stuck: bool = False
     adaptive: bool = False
+    directional: bool = True
     instrumented: bool = False
     ct_knee_vs: float = 0.4
     adc_scale_a: float = 20.0
@@ -74,7 +75,10 @@ class Scenario:
         cycle = self.sample_hz / self.frequency_hz
         if abs(cycle - round(cycle)) > 1e-9 or cycle < 8:
             raise ValueError("at least eight integer samples per nominal cycle required")
-        if any(type(getattr(self, k)) is not bool for k in ("adaptive", "instrumented", "primary_stuck")):
+        if any(
+            type(getattr(self, k)) is not bool
+            for k in ("adaptive", "instrumented", "primary_stuck", "directional")
+        ):
             raise ValueError("scenario switches must be boolean")
 
     def to_dict(self):
@@ -156,7 +160,8 @@ def equilibrium(scenario, primary_closed=True, backup_closed=True, fault_active=
 
 
 def run(scenario):
-    from .core import stream
+    from .core import seq, stream
+    from .directional import MemoryVoltage, torque
     from .measurement import FourierWindow
     from .overcurrent import InverseRelay
     from .switchgear import Breaker
@@ -180,6 +185,9 @@ def run(scenario):
         ]
     else:
         windows = [FourierWindow(scenario.sample_hz, scenario.frequency_hz) for _ in range(2)]
+    voltage_window = FourierWindow(scenario.sample_hz, scenario.frequency_hz)
+    memory = MemoryVoltage(1000, hold_s=0.6)
+    direction = np.zeros((n, 2), bool)
     ct_flux = np.zeros((n, 2, 3))
     adc_clipped = np.zeros((n, 2, 3), bool)
     waves = np.zeros((n, 2, 3))
@@ -232,6 +240,13 @@ def run(scenario):
                     )
         previous_fault = state[2]
         voltage[k] = network["voltage"]["junction"]
+        voltage_sample = np.sqrt(2) * np.real(voltage[k] * np.exp(2j * np.pi * scenario.frequency_hz * t))
+        measured_voltage = voltage_window.update(t, voltage_sample)
+        polarization = memory.update(
+            0 if measured_voltage is None else seq(measured_voltage)[1],
+            dt,
+            valid=measured_voltage is not None,
+        )
         for index, name in enumerate(("primary", "backup")):
             current = network["branch_current"][name]
             true_current[k, index] = current
@@ -254,10 +269,21 @@ def run(scenario):
             if estimate is not None:
                 valid[k, index] = True
                 estimates[k, index] = estimate
+            forward = False
+            if estimate is not None and polarization["valid"]:
+                forward = bool(
+                    torque(
+                        polarization["voltage"], seq(estimate)[1], np.angle(0.4 + 1.2j), minimum_current=0.01
+                    )["forward"]
+                )
+            direction[k, index] = forward
             before = relay[index].tripped
             if k:
                 relay[index].update(
-                    0 if estimate is None else float(np.max(abs(estimate))), dt, valid=estimate is not None
+                    0 if estimate is None else float(np.max(abs(estimate))),
+                    dt,
+                    valid=estimate is not None,
+                    blocked=scenario.directional and not forward,
                 )
             if relay[index].tripped and not before:
                 events.append({"time_s": float(t), "device": name, "event": "trip"})
@@ -276,6 +302,7 @@ def run(scenario):
     return {
         "time_s": time,
         "group_revision": group_revision,
+        "forward": direction,
         "pickup_a": pickup_trace,
         "ct_flux_vs": ct_flux,
         "adc_clipped": adc_clipped,
