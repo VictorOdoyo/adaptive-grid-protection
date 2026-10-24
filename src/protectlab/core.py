@@ -43,3 +43,10 @@ def seq(phases):
     if value.shape[-1] != 3:
         raise ValueError("final axis must have three phases")
     return value @ np.linalg.inv(SEQUENCE).T
+
+
+def phase_matrix(sequence_impedances):
+    values = finite(sequence_impedances)
+    if values.shape != (3,):
+        raise ValueError("three sequence impedances required")
+    return SEQUENCE @ np.diag(values) @ np.linalg.inv(SEQUENCE)
