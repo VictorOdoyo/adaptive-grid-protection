@@ -126,3 +126,30 @@ def feeder(scenario, primary_closed=True, backup_closed=True):
         "shunts": shunts,
         "inverters": inverters,
     }
+
+
+def equilibrium(scenario, primary_closed=True, backup_closed=True, fault_active=False):
+    from .inverters import solve_network
+    from .network import currents, energized, fault_connection
+
+    grid = feeder(scenario, primary_closed, backup_closed)
+    active = energized(grid["buses"], grid["branches"], grid["sources"])
+    buses = [b for b in grid["buses"] if b in active]
+    branches = [b for b in grid["branches"] if b.start in active and b.end in active]
+    fault = None
+    if fault_active and scenario.fault_kind != "none" and scenario.fault_bus in active:
+        fault = fault_connection(buses, scenario.fault_bus, scenario.fault_kind, scenario.resistance_ohm)
+    result = solve_network(
+        buses,
+        branches,
+        grid["sources"],
+        [i for i in grid["inverters"] if i.bus in active],
+        {b: y for b, y in grid["shunts"].items() if b in active},
+        fault,
+    )
+    voltage = {b: np.zeros(3, complex) for b in grid["buses"]}
+    voltage.update(result["voltage"])
+    result["voltage"] = voltage
+    result["branch_current"] = currents(result, grid["branches"])["branches"]
+    result["deenergized"] = [b for b in grid["buses"] if b not in active]
+    return result
