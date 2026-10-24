@@ -103,3 +103,11 @@ def harmonics(time, components, frequency_hz=50):
         integer(order)
         result += synthesize(t, phasor, positive(frequency_hz) * order)
     return result
+
+
+def noisy(values, standard_deviation, seed=42, name="measurement"):
+    from .core import finite, positive, stream
+
+    value = finite(values, real=True)
+    sigma = positive(standard_deviation, allow_zero=True)
+    return value + stream(seed, name).normal(0, sigma, value.shape)

@@ -51,3 +51,10 @@ def test_orthogonal_harmonics_add_rms_energy():
     t = np.arange(640) / 32000
     wave = m.harmonics(t, {1: [10, 10, 10], 2: [3, 3, 3]})
     assert np.sqrt(np.mean(wave[:, 0] ** 2)) == pytest.approx(np.sqrt(109))
+
+
+def test_noise_uses_requested_absolute_units_and_named_seed():
+    data = np.zeros((100000, 3))
+    a = m.noisy(data, 0.1, 42)
+    assert np.std(a) == pytest.approx(0.1, rel=0.01)
+    assert np.array_equal(a, m.noisy(data, 0.1, 42))
