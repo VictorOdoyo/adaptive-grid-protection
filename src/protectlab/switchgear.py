@@ -137,3 +137,18 @@ class Recloser:
             self.shots += 1
             self.opened = None
         return bool(command)
+
+
+def clearing_metrics(fault_s, pickup_s, trip_s, open_s):
+    values = [fault_s, pickup_s, trip_s, open_s]
+    known = [v for v in values if v is not None]
+    if any(not np.isfinite(v) for v in known):
+        raise ValueError("finite event timestamps required")
+    if known != sorted(known):
+        raise ValueError("event chronology is inconsistent")
+    return {
+        "detection_s": None if pickup_s is None else pickup_s - fault_s,
+        "relay_s": None if trip_s is None else trip_s - fault_s,
+        "breaker_s": None if trip_s is None or open_s is None else open_s - trip_s,
+        "clearing_s": None if open_s is None else open_s - fault_s,
+    }

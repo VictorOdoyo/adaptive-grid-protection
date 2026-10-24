@@ -48,3 +48,10 @@ def test_reclose_shots_require_permissive_and_lock_after_failed_shot():
     r.update(0.12, True)
     assert not r.update(0.13, False, True)
     assert r.locked
+
+
+def test_clearing_time_does_not_confuse_trip_with_interruption():
+    result = m.clearing_metrics(0.1, 0.12, 0.15, 0.19)
+    assert result["clearing_s"] == pytest.approx(0.09)
+    assert result["breaker_s"] == pytest.approx(0.04)
+    assert m.clearing_metrics(0.1, None, None, None)["clearing_s"] is None
