@@ -163,3 +163,26 @@ def currents(solution, branches, sources=()):
     }
     source_current = {s.name: np.linalg.solve(s.z, s.emf - voltage[s.bus]) for s in sources}
     return {"branches": branch_current, "sources": source_current}
+
+
+def power_balance(solution, branches, sources, shunts=None, injections=None, fault=None):
+    from .core import power
+
+    c = currents(solution, branches, sources)
+    input_power = sum(power(solution["voltage"][s.bus], c["sources"][s.name]) for s in sources)
+    input_power += sum(
+        power(solution["voltage"][bus], current) for bus, current in (injections or {}).items()
+    )
+    line_loss = sum(np.vdot(c["branches"][b.name], b.z @ c["branches"][b.name]) for b in branches)
+    # vdot computes I* Z I: complex absorbed line power.
+    load = sum(
+        power(solution["voltage"][bus], g @ solution["voltage"][bus]) for bus, g in (shunts or {}).items()
+    )
+    fault_loss = 0 if fault is None else fault["resistance_ohm"] * np.sum(abs(solution["fault_current"]) ** 2)
+    return {
+        "input_va": input_power,
+        "line_va": line_loss,
+        "load_va": load,
+        "fault_w": fault_loss,
+        "defect_va": input_power - line_loss - load - fault_loss,
+    }

@@ -53,3 +53,13 @@ def test_source_and_branch_currents_balance_loaded_terminal():
     currents = m.currents(result, [line], [source])
     assert np.allclose(currents["sources"]["g"], currents["branches"]["l"])
     assert np.allclose(currents["branches"]["l"], result["voltage"]["b"] / 10)
+
+
+def test_complex_power_balance_includes_finite_ground_fault_resistor():
+    source = m.balanced_source("g", "a", 230, 1 + 2j, 1 + 2j)
+    line = m.Branch("l", "a", "b", np.eye(3) * (0.2 + 0.4j))
+    fault = m.fault_connection(["a", "b"], "b", "ag", 2)
+    result = m.solve(["a", "b"], [line], [source], fault=fault)
+    balance = m.power_balance(result, [line], [source], fault=fault)
+    assert abs(balance["defect_va"]) < 1e-8
+    assert balance["fault_w"] > 0
