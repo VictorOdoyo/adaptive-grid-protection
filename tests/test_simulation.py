@@ -56,3 +56,13 @@ def test_dc_offset_changes_measured_fault_window_and_stops_after_opening():
     opened = next(e["time_s"] for e in result["events"] if e["event"] == "open")
     after = result["time_s"] > opened + 1 / scenario.sample_hz
     assert np.all(result["current_wave_a"][after, 0] == 0)
+
+
+def test_adaptive_group_covers_fault_envelope_before_activation():
+    from protectlab.adaptive import commit
+
+    manager = m.setting_manager(m.Scenario(source_factor=20, adaptive=True))
+    assert manager.pending is not None
+    topology = manager.pending["topology"]
+    assert commit(manager, 0.03, topology, 0.03)
+    assert manager.active.pickups_a == (80.0, 100.0)

@@ -267,3 +267,40 @@ def run(scenario):
         "maximum_network_residual": max(v["residual"] for v in cache.values()),
         "maximum_control_residual": max(v["control_residual"] for v in cache.values()),
     }
+
+
+def setting_manager(scenario):
+    from dataclasses import replace
+
+    from .adaptive import Group, Manager, certify
+    from .coordination import optimize
+
+    def envelope(factor):
+        rows = []
+        for kind in ("ag", "bc", "abcg"):
+            for resistance in (0.2, 2.0):
+                condition = replace(
+                    scenario,
+                    source_factor=factor,
+                    fault_kind=kind,
+                    fault_bus="load",
+                    resistance_ohm=resistance,
+                )
+                solved = equilibrium(condition, fault_active=True)
+                rows.append(
+                    [float(np.max(abs(solved["branch_current"][name]))) for name in ("primary", "backup")]
+                )
+        return np.asarray(rows)
+
+    normal = envelope(1.0)
+    base = Group("conventional", "source:1", 1, (400.0, 450.0), (0.03, 0.12))
+    pairs = [(k, 0, 1) for k in range(len(normal))]
+    manager = Manager(base, certify(base, normal, pairs), commit_delay_s=0.03)
+    observed = envelope(scenario.source_factor)
+    optimized = optimize(observed, [80, 100], pairs)
+    group = Group(
+        "adaptive", f"source:{scenario.source_factor:g}", 2, (80.0, 100.0), tuple(optimized["multipliers"])
+    )
+    certificate = certify(group, observed, pairs)
+    manager.propose(group, certificate, group.topology, 0.0, 0.0)
+    return manager
