@@ -45,3 +45,9 @@ def test_three_phase_bases_preserve_per_phase_ohms():
 def test_named_streams_are_repeatable_and_distinct():
     assert np.array_equal(m.stream(42, "adc").normal(size=8), m.stream(42, "adc").normal(size=8))
     assert not np.array_equal(m.stream(42, "adc").normal(size=8), m.stream(42, "ct").normal(size=8))
+
+
+def test_time_integrals_use_actual_nonuniform_spacing():
+    assert m.integrate([0, 0.1, 0.4], [0, 0.1, 0.4]) == pytest.approx(0.08)
+    with pytest.raises(ValueError):
+        m.timebase([0, 0, 1])

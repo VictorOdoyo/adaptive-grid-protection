@@ -78,3 +78,18 @@ def stream(seed, name):
         raise ValueError("32-bit seed and named stream required")
     key = int.from_bytes(hashlib.sha256(name.encode()).digest()[:8], "little")
     return np.random.default_rng(np.random.SeedSequence([seed, key]))
+
+
+def timebase(time):
+    time = finite(time, real=True, ndim=1)
+    if len(time) < 2 or np.any(np.diff(time) <= 0):
+        raise ValueError("at least two strictly increasing timestamps required")
+    return time
+
+
+def integrate(time, values):
+    time = timebase(time)
+    values = finite(values)
+    if values.shape[0] != len(time):
+        raise ValueError("aligned timestamps required")
+    return np.trapezoid(values, time, axis=0)
