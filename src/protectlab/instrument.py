@@ -90,3 +90,11 @@ def energy_audit(time, primary_a, capture, model):
         "storage_change_j": float(stored[-1] - stored[0]),
         "numerical_defect_j": input_energy - burden_energy - float(stored[-1] - stored[0]),
     }
+
+
+def calibrate(secondary, ratio, angle_error_rad=0.0, polarity=1):
+    from .core import finite, positive
+
+    if polarity not in (-1, 1) or not np.isfinite(angle_error_rad):
+        raise ValueError("signed polarity and finite phase calibration required")
+    return finite(secondary) * positive(ratio) * polarity * np.exp(-1j * angle_error_rad)

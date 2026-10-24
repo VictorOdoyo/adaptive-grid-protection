@@ -32,3 +32,9 @@ def test_ct_energy_gradient_matches_excitation_and_refinement_reduces_defect():
         cap = m.simulate(t, primary, ct)
         defects.append(abs(m.energy_audit(t, primary, cap, ct)["numerical_defect_j"]))
     assert defects[1] < defects[0] * 0.6
+
+
+def test_instrument_calibration_reverses_declared_ratio_and_angle_error():
+    expected = np.array([100 + 20j, 30 - 10j])
+    measured = expected / 200 * np.exp(0.03j) * -1
+    assert np.allclose(m.calibrate(measured, 200, 0.03, -1), expected)
