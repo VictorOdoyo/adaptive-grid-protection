@@ -22,3 +22,10 @@ def test_tms_optimization_has_independently_audited_grading_margin():
 def test_low_inverter_fault_current_can_make_overcurrent_pickup_infeasible():
     assert m.pickup_interval(80, 1000)["feasible"]
     assert not m.pickup_interval(80, 96)["feasible"]
+
+
+def test_robust_coordination_certifies_every_sample_not_only_nominal():
+    samples = np.array([[[500, 450]], [[700, 400]], [[400, 550]]])
+    result = m.robust_optimize(samples, [100, 100], [(0, 0, 1)])
+    assert result["constraint_count"] == 3
+    assert result["audit"]["coordinated"]

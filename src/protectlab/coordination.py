@@ -104,3 +104,19 @@ def pickup_interval(maximum_load_a, minimum_fault_a, load_margin=1.25, sensitivi
     lower = positive(maximum_load_a) * positive(load_margin)
     upper = positive(minimum_fault_a) / positive(sensitivity)
     return {"minimum_pickup_a": lower, "maximum_pickup_a": upper, "feasible": bool(lower < upper)}
+
+
+def robust_optimize(current_samples, pickups_a, pairs, **settings):
+    from .core import finite
+
+    samples = finite(current_samples, real=True, ndim=3)
+    count, faults, _ = samples.shape
+    if count < 1:
+        raise ValueError("nonempty uncertainty sample set required")
+    expanded = [
+        (sample * faults + fault, primary, backup)
+        for sample in range(count)
+        for fault, primary, backup in pairs
+    ]
+    result = optimize(samples.reshape(-1, samples.shape[-1]), pickups_a, expanded, **settings)
+    return {**result, "sample_count": count, "constraint_count": len(expanded)}
