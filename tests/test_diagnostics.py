@@ -23,3 +23,12 @@ def test_reactance_locator_ignores_pure_resistive_drop_in_its_stated_model():
     result = m.reactance_location(0.4 * (1 + 3j) + 2, 1 + 3j)
     assert result["fraction"] == pytest.approx(0.4)
     assert result["valid"]
+
+
+def test_takagi_locator_matches_radial_aligned_fault_increment_limit():
+    current = 100 * np.exp(-1j)
+    pre = current * 0.1
+    voltage = 0.7 * (1 + 3j) * current + 2 * current
+    result = m.takagi(voltage, current, pre, 1 + 3j)
+    assert result["fraction"] == pytest.approx(0.7)
+    assert not m.takagi(1, 1, 1, 1j)["valid"]

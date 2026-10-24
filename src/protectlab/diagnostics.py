@@ -28,3 +28,15 @@ def reactance_location(apparent_ohm, line_ohm, minimum_reactance=0.001):
         raise ValueError("observable line reactance required")
     fraction = z.imag / line.imag
     return {"fraction": fraction, "valid": (fraction >= 0) & (fraction <= 1)}
+
+
+def takagi(voltage, current, prefault_current, line_ohm, minimum_denominator=1e-6):
+    from .core import finite, positive
+
+    v, i, pre = [complex(finite(x)) for x in (voltage, current, prefault_current)]
+    increment = i - pre
+    denominator = float(np.imag(line_ohm * i * np.conj(increment)))
+    if abs(denominator) < positive(minimum_denominator):
+        return {"fraction": None, "valid": False}
+    value = float(np.imag(v * np.conj(increment)) / denominator)
+    return {"fraction": value, "valid": bool(0 <= value <= 1)}
