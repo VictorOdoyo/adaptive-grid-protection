@@ -26,3 +26,23 @@ class Queue:
             when, sequence, kind, payload = heapq.heappop(self.heap)
             events.append({"time_s": when, "sequence": sequence, "kind": kind, "payload": payload})
         return events
+
+
+class Debounce:
+    def __init__(self, duration_s=0.02):
+        from .core import positive
+
+        self.duration = positive(duration_s)
+        self.candidate = None
+        self.started = None
+        self.value = None
+
+    def update(self, time_s, value):
+        if not np.isfinite(time_s):
+            raise ValueError("finite topology sample time required")
+        if value != self.candidate:
+            self.candidate = value
+            self.started = time_s
+        if time_s - self.started >= self.duration - 1e-12:
+            self.value = self.candidate
+        return self.value
