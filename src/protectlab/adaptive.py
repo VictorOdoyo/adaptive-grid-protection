@@ -124,3 +124,21 @@ class Manager:
             raise ValueError("setting certificate is invalid")
         self.pending = {"group": group, "topology": topology, "observed_s": observed_s, "proposed_s": now_s}
         self.history.append({"time_s": now_s, "event": "proposed", "group": group.name})
+
+
+def commit(manager, now_s, topology, observed_s, fault_active=False):
+    if not np.all(np.isfinite([now_s, observed_s])):
+        raise ValueError("finite adaptive clock required")
+    pending = manager.pending
+    if pending is None:
+        return False
+    if topology != pending["topology"] or not 0 <= now_s - observed_s <= manager.maximum_age:
+        manager.history.append({"time_s": now_s, "event": "cancelled", "group": pending["group"].name})
+        manager.pending = None
+        return False
+    if fault_active or now_s - pending["proposed_s"] < manager.delay - 1e-12:
+        return False
+    manager.active = pending["group"]
+    manager.pending = None
+    manager.history.append({"time_s": now_s, "event": "committed", "group": manager.active.name})
+    return True

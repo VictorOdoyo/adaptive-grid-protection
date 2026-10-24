@@ -46,3 +46,17 @@ def test_adaptive_proposal_rejects_stale_topology_and_rollback():
         manager.propose(next_group, cert, "b", 0, 1)
     with pytest.raises(ValueError, match="increasing"):
         manager.propose(group, certificate, "a", 0, 0)
+
+
+def test_atomic_setting_commit_waits_for_delay_and_freezes_during_fault():
+    from dataclasses import replace
+
+    base = m.Group("base", "a", 1, (100, 100), (0.05, 0.2))
+    manager = m.Manager(base, m.certify(base, [[500, 500]], [(0, 0, 1)]))
+    weak = replace(base, name="weak", topology="b", revision=2, pickups_a=(80, 80))
+    manager.propose(weak, m.certify(weak, [[400, 400]], [(0, 0, 1)]), "b", 0.1, 0.1)
+    assert not m.commit(manager, 0.11, "b", 0.11)
+    assert not m.commit(manager, 0.13, "b", 0.13, True)
+    assert manager.active == base
+    assert m.commit(manager, 0.14, "b", 0.14)
+    assert manager.active == weak
