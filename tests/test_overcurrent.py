@@ -32,3 +32,12 @@ def test_definite_relay_requires_persistent_pickup_and_respects_dropout():
     relay.update(11, 0.01)
     relay.update(9, 0.01)
     assert relay.elapsed == 0
+
+
+def test_balanced_load_does_not_pick_up_residual_earth_element():
+    from protectlab.core import abc
+
+    result = m.phase_and_ground(abc([0, 100, 0]), 80, 10)
+    assert result["phase_pickup"]
+    assert not result["ground_pickup"]
+    assert m.phase_and_ground([100, 0, 0], 150, 20)["ground_pickup"]

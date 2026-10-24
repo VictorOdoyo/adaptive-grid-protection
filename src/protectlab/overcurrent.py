@@ -89,3 +89,19 @@ class DefiniteRelay:
         self.elapsed = self.elapsed + dt if self.picked else 0.0
         self.tripped = self.picked and self.elapsed >= self.delay - 1e-12
         return self.tripped
+
+
+def phase_and_ground(current_phasors, phase_pickup_a, ground_pickup_a):
+    from .core import finite, positive
+
+    current = finite(current_phasors)
+    if current.shape[-1] != 3:
+        raise ValueError("three-phase currents required")
+    phase = np.max(abs(current), axis=-1)
+    ground = abs(np.sum(current, axis=-1))
+    return {
+        "phase_a": phase,
+        "residual_a": ground,
+        "phase_pickup": phase > positive(phase_pickup_a),
+        "ground_pickup": ground > positive(ground_pickup_a),
+    }
