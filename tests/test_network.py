@@ -33,3 +33,14 @@ def test_network_load_voltage_matches_independent_scalar_divider():
     result = m.solve(["a", "b"], [line], [source], {"b": np.eye(3) / 8})
     assert abs(result["voltage"]["b"][0]) == pytest.approx(184)
     assert result["residual"] < 1e-12
+
+
+def test_bolted_single_ground_fault_matches_sequence_formula():
+    from protectlab.core import seq
+
+    source = m.balanced_source("g", "a", 230, 3 + 6j, 1 + 2j)
+    result = m.solve(["a"], [], [source], fault=m.fault_connection(["a"], "a", "ag"))
+    expected = 3 * 230 / ((3 + 6j) + 2 * (1 + 2j))
+    assert result["fault_current"][0] == pytest.approx(expected)
+    assert abs(result["voltage"]["a"][0]) < 1e-10
+    assert np.allclose(seq(np.linalg.solve(source.z, source.emf - result["voltage"]["a"])), expected / 3)

@@ -118,3 +118,36 @@ def solve(buses, branches, sources=(), shunts=None, injections=None, fault=None)
         "fault_current": solution[len(j) :].copy(),
         "residual": residual,
     }
+
+
+def fault_connection(buses, bus, kind="ag", resistance_ohm=0):
+    from .core import positive
+
+    buses = tuple(buses)
+    if bus not in buses:
+        raise ValueError("fault bus not found")
+    patterns = {
+        "ag": [[1, 0, 0]],
+        "bg": [[0, 1, 0]],
+        "cg": [[0, 0, 1]],
+        "ab": [[1, -1, 0]],
+        "bc": [[0, 1, -1]],
+        "ca": [[-1, 0, 1]],
+        "abg": [[1, 0, 0], [0, 1, 0]],
+        "bcg": [[0, 1, 0], [0, 0, 1]],
+        "cag": [[0, 0, 1], [1, 0, 0]],
+        "abc": [[1, -1, 0], [0, 1, -1]],
+        "abcg": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+    }
+    if kind not in patterns:
+        raise ValueError("unknown fault kind")
+    rows = np.asarray(patterns[kind], float)
+    f = np.zeros((len(rows), 3 * len(buses)))
+    index = buses.index(bus) * 3
+    f[:, index : index + 3] = rows
+    return {
+        "connection": f,
+        "resistance_ohm": positive(resistance_ohm, allow_zero=True),
+        "bus": bus,
+        "kind": kind,
+    }
