@@ -111,3 +111,15 @@ def noisy(values, standard_deviation, seed=42, name="measurement"):
     value = finite(values, real=True)
     sigma = positive(standard_deviation, allow_zero=True)
     return value + stream(seed, name).normal(0, sigma, value.shape)
+
+
+def dropout(time, values, start_s, stop_s):
+    from .core import finite, timebase
+
+    t = timebase(time)
+    v = finite(values, real=True).copy()
+    if not start_s < stop_s or v.shape[0] != len(t):
+        raise ValueError("aligned values and ordered dropout window required")
+    valid = ~((t >= start_s) & (t < stop_s))
+    v[~valid] = 0
+    return {"values": v, "valid": valid}

@@ -58,3 +58,9 @@ def test_noise_uses_requested_absolute_units_and_named_seed():
     a = m.noisy(data, 0.1, 42)
     assert np.std(a) == pytest.approx(0.1, rel=0.01)
     assert np.array_equal(a, m.noisy(data, 0.1, 42))
+
+
+def test_dropout_keeps_zero_placeholders_separate_from_validity():
+    result = m.dropout([0, 0.01, 0.02, 0.03], np.ones((4, 3)), 0.01, 0.03)
+    assert np.array_equal(result["valid"], [True, False, False, True])
+    assert np.all(result["values"][~result["valid"]] == 0)
