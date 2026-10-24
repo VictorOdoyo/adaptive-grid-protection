@@ -17,3 +17,12 @@ def test_memory_polarization_expires_after_close_in_voltage_collapse():
     assert memory.update(0, 0.01)["valid"]
     assert memory.update(0, 0.01)["valid"]
     assert not memory.update(0, 0.011)["valid"]
+
+
+def test_negative_sequence_direction_requires_observable_negative_sequence():
+    from protectlab.core import abc
+
+    healthy = m.negative_sequence(abc([0, 100, 0]), abc([0, 10, 0]))
+    assert not healthy["valid"]
+    result = m.negative_sequence(abc([0, 100, -5]), abc([0, 10, np.exp(-1.2j)]))
+    assert result["forward"]

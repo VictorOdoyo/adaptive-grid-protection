@@ -42,3 +42,11 @@ class MemoryVoltage:
             self.age += dt
         usable = self.age <= self.hold and abs(self.memory) >= self.minimum
         return {"voltage": self.memory, "valid": usable, "age_s": self.age}
+
+
+def negative_sequence(voltage_abc, current_abc, impedance_angle_rad=1.2, minimum_current_a=0.1):
+    from .core import seq
+
+    v2 = seq(voltage_abc)[..., 2]
+    i2 = seq(current_abc)[..., 2]
+    return torque(-v2, i2, impedance_angle_rad, minimum_current=minimum_current_a)
