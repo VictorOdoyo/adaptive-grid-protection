@@ -38,3 +38,11 @@ def test_instrument_calibration_reverses_declared_ratio_and_angle_error():
     expected = np.array([100 + 20j, 30 - 10j])
     measured = expected / 200 * np.exp(0.03j) * -1
     assert np.allclose(m.calibrate(measured, 200, 0.03, -1), expected)
+
+
+def test_ct_frequency_response_has_physical_low_frequency_rolloff():
+    ct = m.CT()
+    h = m.linear_response([0.001, 50], ct)
+    assert abs(h[0]) < 0.2
+    assert abs(h[1]) > 0.999
+    assert h[0].imag > 0

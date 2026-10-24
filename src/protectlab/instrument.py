@@ -98,3 +98,13 @@ def calibrate(secondary, ratio, angle_error_rad=0.0, polarity=1):
     if polarity not in (-1, 1) or not np.isfinite(angle_error_rad):
         raise ValueError("signed polarity and finite phase calibration required")
     return finite(secondary) * positive(ratio) * polarity * np.exp(-1j * angle_error_rad)
+
+
+def linear_response(frequency_hz, model):
+    from .core import finite
+
+    f = finite(frequency_hz, real=True)
+    if np.any(f <= 0):
+        raise ValueError("positive frequencies required")
+    impedance = 2j * np.pi * f * model.magnetizing_h
+    return impedance / (model.burden_ohm + impedance)
