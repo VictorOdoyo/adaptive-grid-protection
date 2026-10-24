@@ -108,3 +108,18 @@ def linear_response(frequency_hz, model):
         raise ValueError("positive frequencies required")
     impedance = 2j * np.pi * f * model.magnetizing_h
     return impedance / (model.burden_ohm + impedance)
+
+
+def flux_prescreen(time, primary_a, model, initial_flux_vs=0.0):
+    from scipy.integrate import cumulative_trapezoid
+
+    from .core import finite, timebase
+
+    t = timebase(time)
+    primary = finite(primary_a, real=True, ndim=1)
+    if primary.shape != t.shape:
+        raise ValueError("aligned samples required")
+    ideal_flux = initial_flux_vs + cumulative_trapezoid(
+        model.burden_ohm * primary / model.ratio, t, initial=0
+    )
+    return {"ideal_flux_vs": ideal_flux, "exceeds_knee": abs(ideal_flux) > model.knee_vs}

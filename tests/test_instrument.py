@@ -46,3 +46,11 @@ def test_ct_frequency_response_has_physical_low_frequency_rolloff():
     assert abs(h[0]) < 0.2
     assert abs(h[1]) > 0.999
     assert h[0].imag > 0
+
+
+def test_dc_offset_burden_flux_predicts_increased_saturation_stress():
+    ct = m.CT()
+    t = np.linspace(0, 0.1, 1001)
+    normal = m.flux_prescreen(t, 1000 * np.sin(2 * np.pi * 50 * t), ct)
+    offset = m.flux_prescreen(t, 1000 * np.sin(2 * np.pi * 50 * t) + 1000 * np.exp(-t / 0.05), ct)
+    assert np.max(abs(offset["ideal_flux_vs"])) > 3 * np.max(abs(normal["ideal_flux_vs"]))
