@@ -26,3 +26,17 @@ def ground_loops(voltage, current, z0_ohm, z1_ohm, minimum_a=1e-3):
     valid = abs(denominator) >= positive(minimum_a)
     z = np.divide(v, denominator, out=np.zeros_like(v), where=valid)
     return {"impedance_ohm": z, "valid": valid, "k0": compensation}
+
+
+def mho(impedance, reach_ohm, valid=True, forward=True):
+    from .core import finite
+
+    z = finite(impedance)
+    reach = complex(finite(reach_ohm))
+    if abs(reach) == 0:
+        raise ValueError("nonzero mho reach required")
+    return (
+        np.asarray(valid, bool)
+        & np.asarray(forward, bool)
+        & (abs(z - reach / 2) <= abs(reach) / 2 * (1 + 1e-12))
+    )
