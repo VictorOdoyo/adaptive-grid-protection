@@ -60,3 +60,18 @@ def signature(voltage, current, prefault_voltage, prefault_current, minimum_a=1.
         "negative_fraction": 0.0 if not observable else float(abs(di[2]) / total),
         "delta_v_sequence": dv,
     }
+
+
+def arrival_location(left_time_s, right_time_s, length_m, velocity_m_s, maximum_skew_s=0.0):
+    from .core import positive
+
+    length, velocity = positive(length_m), positive(velocity_m_s)
+    skew = positive(maximum_skew_s, allow_zero=True)
+    if not np.all(np.isfinite([left_time_s, right_time_s])):
+        raise ValueError("finite arrival timestamps required")
+    position = (length + velocity * (left_time_s - right_time_s)) / 2
+    return {
+        "position_m": position,
+        "valid": bool(0 <= position <= length),
+        "clock_error_bound_m": velocity * skew / 2,
+    }

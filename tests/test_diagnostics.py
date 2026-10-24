@@ -42,3 +42,9 @@ def test_signature_reports_zero_sequence_and_blocks_tiny_increment():
     assert result["observable"]
     assert result["delta_i0_a"] == pytest.approx(10)
     assert not m.signature([1, 1, 1], before, [1, 1, 1], before)["observable"]
+
+
+def test_arrival_location_and_clock_error_scale_with_wave_velocity():
+    result = m.arrival_location(0.004, 0.006, 2e6, 2e8, 1e-6)
+    assert result["position_m"] == pytest.approx(800000)
+    assert result["clock_error_bound_m"] == pytest.approx(100)
