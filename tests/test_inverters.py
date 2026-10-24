@@ -45,3 +45,12 @@ def test_held_current_response_matches_exponential_and_is_causal():
     current = m.response(t, target, 0.003, initial=np.zeros(3))
     assert np.allclose(current[:, 0], 10 * (1 - np.exp(-t / 0.003)))
     assert current[0, 0] == 0
+
+
+def test_ride_through_requires_sustained_low_voltage_and_recovery():
+    r = m.RideThrough(delay_s=0.03)
+    assert not r.update(0.05, 0.01)
+    assert not r.update(0.05, 0.01)
+    assert r.update(0.05, 0.01)
+    assert r.update(0.5, 0.01)
+    assert not r.update(1.0, 0.01)

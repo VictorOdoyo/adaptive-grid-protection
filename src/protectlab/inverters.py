@@ -122,3 +122,32 @@ def response(time, target, time_constant_s, initial=None):
         decay = np.exp(-(t[k] - t[k - 1]) / tau)
         current[k] = decay * current[k - 1] + (1 - decay) * target[k - 1]
     return current
+
+
+class RideThrough:
+    def __init__(self, low_pu=0.1, delay_s=0.04, recover_pu=0.9):
+        from .core import positive
+
+        self.low = positive(low_pu)
+        self.delay = positive(delay_s)
+        self.recover = positive(recover_pu)
+        if self.recover <= self.low:
+            raise ValueError("recovery voltage must exceed blocking voltage")
+        self.elapsed = 0.0
+        self.blocked = False
+
+    def update(self, voltage_pu, dt_s):
+        from .core import positive
+
+        dt = positive(dt_s)
+        voltage = positive(voltage_pu, allow_zero=True)
+        if voltage >= self.recover:
+            self.blocked = False
+            self.elapsed = 0.0
+        elif voltage < self.low:
+            self.elapsed += dt
+            if self.elapsed >= self.delay - 1e-12:
+                self.blocked = True
+        elif not self.blocked:
+            self.elapsed = 0.0
+        return self.blocked
