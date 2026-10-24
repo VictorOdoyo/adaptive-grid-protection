@@ -44,3 +44,12 @@ def test_bolted_single_ground_fault_matches_sequence_formula():
     assert result["fault_current"][0] == pytest.approx(expected)
     assert abs(result["voltage"]["a"][0]) < 1e-10
     assert np.allclose(seq(np.linalg.solve(source.z, source.emf - result["voltage"]["a"])), expected / 3)
+
+
+def test_source_and_branch_currents_balance_loaded_terminal():
+    source = m.balanced_source("g", "a", 230, 1j, 1j)
+    line = m.Branch("l", "a", "b", np.eye(3) * (1 + 1j))
+    result = m.solve(["a", "b"], [line], [source], {"b": np.eye(3) / 10})
+    currents = m.currents(result, [line], [source])
+    assert np.allclose(currents["sources"]["g"], currents["branches"]["l"])
+    assert np.allclose(currents["branches"]["l"], result["voltage"]["b"] / 10)

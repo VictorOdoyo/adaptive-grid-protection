@@ -151,3 +151,15 @@ def fault_connection(buses, bus, kind="ag", resistance_ohm=0):
         "bus": bus,
         "kind": kind,
     }
+
+
+def currents(solution, branches, sources=()):
+    voltage = solution["voltage"]
+    branch_current = {
+        b.name: (
+            np.linalg.solve(b.z, voltage[b.start] - voltage[b.end]) if b.closed else np.zeros(3, complex)
+        )
+        for b in branches
+    }
+    source_current = {s.name: np.linalg.solve(s.z, s.emf - voltage[s.bus]) for s in sources}
+    return {"branches": branch_current, "sources": source_current}
