@@ -75,3 +75,16 @@ def arrival_location(left_time_s, right_time_s, length_m, velocity_m_s, maximum_
         "valid": bool(0 <= position <= length),
         "clock_error_bound_m": velocity * skew / 2,
     }
+
+
+def unbalance(voltage, current, minimum_v=1.0, minimum_a=0.1):
+    from .core import positive, seq
+
+    v, i = seq(voltage), seq(current)
+    valid = abs(v[..., 1]) >= positive(minimum_v)
+    ratio = np.divide(abs(v[..., 2]), abs(v[..., 1]), out=np.zeros_like(abs(v[..., 1])), where=valid)
+    return {
+        "voltage_negative_ratio": ratio,
+        "voltage_valid": valid,
+        "negative_current_observable": abs(i[..., 2]) >= positive(minimum_a),
+    }

@@ -48,3 +48,11 @@ def test_arrival_location_and_clock_error_scale_with_wave_velocity():
     result = m.arrival_location(0.004, 0.006, 2e6, 2e8, 1e-6)
     assert result["position_m"] == pytest.approx(800000)
     assert result["clock_error_bound_m"] == pytest.approx(100)
+
+
+def test_voltage_unbalance_does_not_imply_available_inverter_negative_current():
+    from protectlab.core import abc
+
+    result = m.unbalance(abc([0, 100, 10]), abc([0, 20, 0]))
+    assert result["voltage_negative_ratio"] == pytest.approx(0.1)
+    assert not result["negative_current_observable"]
