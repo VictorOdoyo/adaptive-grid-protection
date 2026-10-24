@@ -57,3 +57,14 @@ def polygon(impedance, vertices, valid=True):
     tolerance = 1e-12 * max(1, float(np.max(abs(points))) ** 2)
     inside = np.all(cross >= -tolerance, axis=-1) | np.all(cross <= tolerance, axis=-1)
     return np.asarray(valid, bool) & inside
+
+
+def load_encroachment(impedance, minimum_ohm, half_angle_rad=np.pi / 6):
+    from .core import finite, positive
+
+    z = finite(impedance)
+    if not 0 < half_angle_rad < np.pi / 2:
+        raise ValueError("load wedge half angle in (0,pi/2) required")
+    angle = abs(np.angle(z))
+    near_real = np.minimum(angle, abs(np.pi - angle)) < half_angle_rad
+    return (abs(z) >= positive(minimum_ohm)) & near_real

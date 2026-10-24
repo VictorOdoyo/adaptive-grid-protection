@@ -38,3 +38,7 @@ def test_quadrilateral_can_extend_resistive_reach_without_reactive_overreach():
     assert not m.polygon(6 + 6j, vertices)
     with pytest.raises(ValueError):
         m.polygon(1, [0, 2 + 2j, 2, 2j])
+
+
+def test_load_wedge_blocks_forward_and_reverse_load_but_not_reactive_fault():
+    assert np.array_equal(m.load_encroachment([10 + 1j, -10 - 1j, 2 + 9j], 5), [True, True, False])
