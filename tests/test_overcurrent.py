@@ -20,3 +20,15 @@ def test_relay_travel_matches_constant_current_time_and_resets_invalid_history()
     assert other.travel > 0
     assert not other.update(500, 0.001, valid=False)
     assert other.travel == 0
+
+
+def test_definite_relay_requires_persistent_pickup_and_respects_dropout():
+    relay = m.DefiniteRelay(10, 0.03)
+    assert not relay.update(11, 0.01)
+    assert not relay.update(9.8, 0.01)
+    assert relay.update(11, 0.01)
+    assert relay.update(0, 0.01)
+    relay = m.DefiniteRelay(10, 0.03)
+    relay.update(11, 0.01)
+    relay.update(9, 0.01)
+    assert relay.elapsed == 0

@@ -59,3 +59,33 @@ class InverseRelay:
             self.travel = max(0.0, self.travel - dt / self.reset_s)
         self.tripped = self.travel >= 1 - 1e-12
         return self.tripped
+
+
+class DefiniteRelay:
+    def __init__(self, pickup_a, delay_s=0.02, dropout=0.95):
+        from .core import positive
+
+        self.pickup = positive(pickup_a)
+        self.delay = positive(delay_s, allow_zero=True)
+        if not 0 < dropout <= 1:
+            raise ValueError("dropout fraction in (0,1] required")
+        self.dropout = dropout
+        self.elapsed = 0.0
+        self.picked = False
+        self.tripped = False
+
+    def update(self, current_a, dt_s, valid=True, blocked=False):
+        from .core import positive
+
+        current = positive(current_a, allow_zero=True)
+        dt = positive(dt_s)
+        if self.tripped:
+            return True
+        if not valid or blocked:
+            self.elapsed = 0.0
+            self.picked = False
+            return False
+        self.picked = current > self.pickup if not self.picked else current > self.pickup * self.dropout
+        self.elapsed = self.elapsed + dt if self.picked else 0.0
+        self.tripped = self.picked and self.elapsed >= self.delay - 1e-12
+        return self.tripped
