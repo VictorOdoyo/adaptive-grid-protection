@@ -75,3 +75,20 @@ def rl_fault(
         -r / inductance * (t[selected] - inception_s)
     )
     return result
+
+
+def rl_trapezoid(time, voltage, resistance_ohm, inductance_h, initial_a=0.0):
+    from .core import finite, positive, timebase
+
+    t = timebase(time)
+    v = finite(voltage, real=True, ndim=1)
+    r, inductance = positive(resistance_ohm), positive(inductance_h)
+    if v.shape != t.shape:
+        raise ValueError("voltage and time alignment required")
+    current = np.empty(len(t))
+    current[0] = initial_a
+    for k, dt in enumerate(np.diff(t), 1):
+        current[k] = ((inductance / dt - r / 2) * current[k - 1] + (v[k] + v[k - 1]) / 2) / (
+            inductance / dt + r / 2
+        )
+    return {"current_a": current, "energy_j": 0.5 * inductance * current**2}

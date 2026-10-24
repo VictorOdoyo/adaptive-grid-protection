@@ -34,3 +34,14 @@ def test_exact_rl_transient_satisfies_differential_equation():
     voltage = np.sqrt(2) * 100 * np.cos(2 * np.pi * 50 * t + 0.2)
     assert np.max(abs(0.01 * derivative[1:-1] + current[1:-1] - voltage[1:-1])) < 0.001
     assert current[0] == pytest.approx(0)
+
+
+def test_trapezoidal_rl_converges_to_independent_exact_solution():
+    errors = []
+    for count in (1001, 2001):
+        t = np.linspace(0, 0.05, count)
+        v = np.sqrt(2) * 100 * np.cos(2 * np.pi * 50 * t)
+        numerical = m.rl_trapezoid(t, v, 1, 0.01)["current_a"]
+        exact = m.rl_fault(t, 1, 0.01, 100)
+        errors.append(np.linalg.norm(numerical - exact) / np.sqrt(count))
+    assert errors[0] / errors[1] > 3.9
