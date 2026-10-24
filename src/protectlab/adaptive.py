@@ -101,3 +101,26 @@ def verify_certificate(group, certificate):
         return expected == certificate
     except (ValueError, KeyError, TypeError):
         return False
+
+
+class Manager:
+    def __init__(self, initial, certificate, maximum_age_s=0.1, commit_delay_s=0.02):
+        from .core import positive
+
+        if not verify_certificate(initial, certificate):
+            raise ValueError("initial settings require a valid modeled-envelope certificate")
+        self.active = initial
+        self.maximum_age = positive(maximum_age_s)
+        self.delay = positive(commit_delay_s, allow_zero=True)
+        self.pending = None
+        self.history = []
+
+    def propose(self, group, certificate, topology, observed_s, now_s):
+        if not np.all(np.isfinite([observed_s, now_s])) or not 0 <= now_s - observed_s <= self.maximum_age:
+            raise ValueError("fresh nonfuture topology observation required")
+        if group.topology != topology or group.revision <= self.active.revision:
+            raise ValueError("matching topology and increasing setting revision required")
+        if not verify_certificate(group, certificate):
+            raise ValueError("setting certificate is invalid")
+        self.pending = {"group": group, "topology": topology, "observed_s": observed_s, "proposed_s": now_s}
+        self.history.append({"time_s": now_s, "event": "proposed", "group": group.name})
