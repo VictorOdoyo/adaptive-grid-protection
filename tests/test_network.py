@@ -90,3 +90,13 @@ def test_open_breaker_separates_unenergized_downstream_bus():
     branch = m.Branch("l", "a", "b", np.eye(3))
     assert m.energized(["a", "b"], [branch], [source]) == {"a", "b"}
     assert m.energized(["a", "b"], [replace(branch, closed=False)], [source]) == {"a"}
+
+
+def test_post_trip_solver_does_not_fabricate_voltage_on_unsupported_island():
+    source = m.balanced_source("g", "a", 230, 1j, 1j)
+    line = m.Branch("l", "a", "b", np.eye(3), False)
+    fault = m.fault_connection(["a", "b"], "b", "ag")
+    result = m.solve_energized(["a", "b"], [line], [source], fault=fault)
+    assert np.all(result["voltage"]["b"] == 0)
+    assert abs(result["voltage"]["a"][0]) == pytest.approx(230)
+    assert result["deenergized"] == ["b"]

@@ -231,3 +231,31 @@ def energized(buses, branches, sources):
             reached.add(neighbor)
             queue.append(neighbor)
     return reached
+
+
+def solve_energized(buses, branches, sources, shunts=None, injections=None, fault=None):
+    buses = tuple(buses)
+    active = energized(buses, branches, sources)
+    subset = [b for b in buses if b in active]
+    voltage = {b: np.zeros(3, complex) for b in buses}
+    if not active:
+        return {
+            "voltage": voltage,
+            "fault_current": np.zeros(0, complex),
+            "residual": 0.0,
+            "deenergized": list(buses),
+        }
+    lines = [b for b in branches if b.start in active and b.end in active]
+    local_fault = None
+    if fault is not None and fault["bus"] in active:
+        local_fault = fault_connection(subset, fault["bus"], fault["kind"], fault["resistance_ohm"])
+    result = solve(
+        subset,
+        lines,
+        sources,
+        {k: v for k, v in (shunts or {}).items() if k in active},
+        {k: v for k, v in (injections or {}).items() if k in active},
+        local_fault,
+    )
+    voltage.update(result["voltage"])
+    return {**result, "voltage": voltage, "deenergized": [b for b in buses if b not in active]}
