@@ -45,3 +45,9 @@ def test_trapezoidal_rl_converges_to_independent_exact_solution():
         exact = m.rl_fault(t, 1, 0.01, 100)
         errors.append(np.linalg.norm(numerical - exact) / np.sqrt(count))
     assert errors[0] / errors[1] > 3.9
+
+
+def test_orthogonal_harmonics_add_rms_energy():
+    t = np.arange(640) / 32000
+    wave = m.harmonics(t, {1: [10, 10, 10], 2: [3, 3, 3]})
+    assert np.sqrt(np.mean(wave[:, 0] ** 2)) == pytest.approx(np.sqrt(109))

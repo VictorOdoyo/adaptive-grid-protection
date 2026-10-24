@@ -92,3 +92,14 @@ def rl_trapezoid(time, voltage, resistance_ohm, inductance_h, initial_a=0.0):
             inductance / dt + r / 2
         )
     return {"current_a": current, "energy_j": 0.5 * inductance * current**2}
+
+
+def harmonics(time, components, frequency_hz=50):
+    from .core import integer, positive, timebase
+
+    t = timebase(time)
+    result = np.zeros((len(t), 3))
+    for order, phasor in components.items():
+        integer(order)
+        result += synthesize(t, phasor, positive(frequency_hz) * order)
+    return result
