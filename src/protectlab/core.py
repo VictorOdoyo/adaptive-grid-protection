@@ -57,3 +57,14 @@ def power(voltage, current):
     if v.shape[-1] != 3:
         raise ValueError("three-phase final axis required")
     return np.sum(v * np.conj(i), axis=-1)
+
+
+def bases(power_va, line_voltage_v):
+    s, v = positive(power_va), positive(line_voltage_v)
+    return {
+        "power_va": s,
+        "line_voltage_v": v,
+        "phase_voltage_v": v / np.sqrt(3),
+        "current_a": s / (np.sqrt(3) * v),
+        "impedance_ohm": v * v / s,
+    }

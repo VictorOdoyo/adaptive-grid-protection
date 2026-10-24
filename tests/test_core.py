@@ -35,3 +35,8 @@ def test_rms_power_has_no_peak_phasor_half_factor():
     v = m.abc([0, 230, 0])
     i = m.abc([0, 10 - 2j, 0])
     assert m.power(v, i) == pytest.approx(6900 + 1380j)
+
+
+def test_three_phase_bases_preserve_per_phase_ohms():
+    b = m.bases(1e6, 11000)
+    assert b["impedance_ohm"] == pytest.approx(b["phase_voltage_v"] / b["current_a"])
