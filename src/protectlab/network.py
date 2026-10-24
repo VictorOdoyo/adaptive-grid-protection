@@ -23,3 +23,29 @@ class Branch:
             raise ValueError("named distinct branch endpoints required")
         z.setflags(write=False)
         object.__setattr__(self, "z", z)
+
+
+@dataclass(frozen=True)
+class Source:
+    name: str
+    bus: str
+    emf: object
+    z: object
+
+    def __post_init__(self):
+        from .core import finite
+
+        emf = finite(self.emf).copy()
+        checked = Branch(self.name, self.bus, self.bus + "__internal", self.z)
+        if emf.shape != (3,):
+            raise ValueError("three RMS source phase emfs required")
+        emf.setflags(write=False)
+        object.__setattr__(self, "emf", emf)
+        object.__setattr__(self, "z", checked.z)
+
+
+def balanced_source(name, bus, phase_voltage_v, z0, z1, z2=None, angle_rad=0):
+    from .core import abc, phase_matrix, positive
+
+    emf = abc([0, positive(phase_voltage_v) * np.exp(1j * angle_rad), 0])
+    return Source(name, bus, emf, phase_matrix([z0, z1, z1 if z2 is None else z2]))
