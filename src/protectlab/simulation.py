@@ -239,7 +239,13 @@ def run(scenario):
                 np.sqrt(2) * np.real(current * np.exp(2j * np.pi * scenario.frequency_hz * t))
                 + noise[k, index]
             )
-            if state[2] and actual_inception is not None and scenario.dc_tau_s > 0 and state[index]:
+            if (
+                state[2]
+                and actual_inception is not None
+                and scenario.dc_tau_s > 0
+                and state[index]
+                and np.linalg.norm(current) > 1e-6
+            ):
                 waves[k, index] += dc_amplitude[index] * np.exp(-(t - actual_inception) / scenario.dc_tau_s)
             estimate = windows[index].update(t, waves[k, index])
             if scenario.instrumented:

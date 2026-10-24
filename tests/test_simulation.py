@@ -78,3 +78,10 @@ def test_adaptive_settings_clear_weak_fault_that_conventional_pickup_misses():
     assert any(e["device"] == "primary" and e["event"] == "open" for e in adaptive["events"])
     assert not any(e["device"] == "backup" and e["event"] == "trip" for e in adaptive["events"])
     assert adaptive["group_revision"][-1] == 2
+
+
+def test_primary_opening_also_removes_upstream_fault_offset_tail():
+    result = m.run(m.Scenario(dc_tau_s=0.04, duration_s=0.5))
+    opened = next(e["time_s"] for e in result["events"] if e["event"] == "open")
+    after = result["time_s"] > opened + 2 / 3200
+    assert np.max(abs(result["current_wave_a"][after])) < 1e-6
