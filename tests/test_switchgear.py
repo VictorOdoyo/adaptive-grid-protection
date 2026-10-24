@@ -38,3 +38,13 @@ def test_sync_check_blocks_live_bus_phase_and_frequency_mismatch():
     assert not m.sync_check(230, -230, 50, 50)
     assert not m.sync_check(230, 230, 50, 50.5)
     assert not m.sync_check(0, 230, 50, 50)
+
+
+def test_reclose_shots_require_permissive_and_lock_after_failed_shot():
+    r = m.Recloser(0.1, 1)
+    assert not r.update(0, False, True)
+    assert not r.update(0.1, False, False)
+    assert r.update(0.11, False, True)
+    r.update(0.12, True)
+    assert not r.update(0.13, False, True)
+    assert r.locked

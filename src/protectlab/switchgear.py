@@ -110,3 +110,30 @@ def sync_check(
         and abs(left_hz - right_hz) <= positive(maximum_slip_hz)
         and mismatch <= positive(maximum_voltage_fraction)
     )
+
+
+class Recloser:
+    def __init__(self, dead_s=0.3, maximum_shots=1):
+        from .core import integer, positive
+
+        self.dead = positive(dead_s)
+        self.maximum = integer(maximum_shots)
+        self.shots = 0
+        self.opened = None
+        self.previous_closed = True
+        self.locked = False
+
+    def update(self, time_s, closed, permitted=False):
+        if not np.isfinite(time_s):
+            raise ValueError("finite recloser time required")
+        if self.previous_closed and not closed:
+            self.opened = time_s
+            if self.shots >= self.maximum:
+                self.locked = True
+        self.previous_closed = bool(closed)
+        ready = not closed and self.opened is not None and time_s - self.opened >= self.dead - 1e-12
+        command = ready and permitted and not self.locked
+        if command:
+            self.shots += 1
+            self.opened = None
+        return bool(command)
