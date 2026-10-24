@@ -22,3 +22,11 @@ def test_harmonic_blocking_does_not_turn_missing_fundamental_into_inrush():
     assert np.array_equal(result["blocked"], [True, False, False])
     assert not result["valid"][2]
     assert np.all(m.harmonic_block([100, 100, 100], [20, 1, 1], cross_phase=True)["blocked"])
+
+
+def test_transformer_compensation_aligns_ratio_clock_and_blocks_zero_sequence():
+    from protectlab.core import abc, seq
+
+    current = abc([4, 100 * np.exp(1j * np.pi / 6), 0]) / 2
+    result = m.compensate(current, 2, 1, True)
+    assert np.allclose(seq(result), [0, 100, 0], atol=1e-12)
