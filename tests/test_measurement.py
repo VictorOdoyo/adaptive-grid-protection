@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from protectlab import measurement as m
 
@@ -19,3 +20,10 @@ def test_analog_filter_attenuates_high_frequency_without_future_samples():
     impulse = np.zeros(100)
     impulse[50] = 1
     assert np.all(m.lowpass(impulse, fs, 300)[:50] == 0)
+
+
+def test_decimation_tracks_physical_rate_and_rejects_aliasing_cutoff():
+    result = m.decimate(np.ones(1000), 10000, 5)
+    assert len(result["values"]) == 200 and result["sample_hz"] == 2000
+    with pytest.raises(ValueError):
+        m.decimate(np.ones(100), 10000, 5, 1500)

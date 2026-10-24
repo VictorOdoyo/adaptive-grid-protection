@@ -26,3 +26,14 @@ def lowpass(values, sample_hz, cutoff_hz, order=4):
     if not fc < fs / 2:
         raise ValueError("cutoff must lie below Nyquist")
     return sosfilt(butter(order, fc, fs=fs, output="sos"), values, axis=0)
+
+
+def decimate(values, sample_hz, factor, cutoff_hz=None):
+    from .core import integer, positive
+
+    integer(factor, 2)
+    new_fs = positive(sample_hz) / factor
+    cutoff = 0.4 * new_fs if cutoff_hz is None else positive(cutoff_hz)
+    if cutoff >= new_fs / 2:
+        raise ValueError("anti-alias cutoff exceeds new Nyquist")
+    return {"values": lowpass(values, sample_hz, cutoff)[::factor], "sample_hz": new_fs}
