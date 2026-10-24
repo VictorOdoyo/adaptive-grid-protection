@@ -32,3 +32,13 @@ def test_takagi_locator_matches_radial_aligned_fault_increment_limit():
     result = m.takagi(voltage, current, pre, 1 + 3j)
     assert result["fraction"] == pytest.approx(0.7)
     assert not m.takagi(1, 1, 1, 1j)["valid"]
+
+
+def test_signature_reports_zero_sequence_and_blocks_tiny_increment():
+    from protectlab.core import abc
+
+    before = abc([0, 10, 0])
+    result = m.signature([100, 100, 100], before + np.array([30, 0, 0]), [100, 100, 100], before)
+    assert result["observable"]
+    assert result["delta_i0_a"] == pytest.approx(10)
+    assert not m.signature([1, 1, 1], before, [1, 1, 1], before)["observable"]

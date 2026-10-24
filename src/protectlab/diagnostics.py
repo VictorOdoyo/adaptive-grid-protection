@@ -40,3 +40,23 @@ def takagi(voltage, current, prefault_current, line_ohm, minimum_denominator=1e-
         return {"fraction": None, "valid": False}
     value = float(np.imag(v * np.conj(increment)) / denominator)
     return {"fraction": value, "valid": bool(0 <= value <= 1)}
+
+
+def signature(voltage, current, prefault_voltage, prefault_current, minimum_a=1.0):
+    from .core import finite, positive, seq
+
+    v, i = finite(voltage), finite(current)
+    dv, di = seq(v - finite(prefault_voltage)), seq(i - finite(prefault_current))
+    if v.shape != (3,) or i.shape != (3,):
+        raise ValueError("one set of terminal phase values required")
+    observable = np.linalg.norm(di) >= positive(minimum_a)
+    total = float(np.linalg.norm(di))
+    return {
+        "observable": bool(observable),
+        "delta_i0_a": float(abs(di[0])),
+        "delta_i1_a": float(abs(di[1])),
+        "delta_i2_a": float(abs(di[2])),
+        "zero_fraction": 0.0 if not observable else float(abs(di[0]) / total),
+        "negative_fraction": 0.0 if not observable else float(abs(di[2]) / total),
+        "delta_v_sequence": dv,
+    }
