@@ -22,3 +22,11 @@ def test_breaker_failure_requires_persistent_current_after_trip():
     clear.update(0, True, 100)
     assert not clear.update(0.05, False, 0, False)
     assert not clear.update(0.2, False, 0, False)
+
+
+def test_arc_pole_waits_for_current_zero_after_contact_motion():
+    pole = m.ArcPole(0.03)
+    assert pole.update(0, 100, True)
+    assert pole.update(0.02, -100)
+    assert pole.update(0.031, -50)
+    assert not pole.update(0.04, 2)

@@ -60,3 +60,26 @@ class BreakerFailure:
         if self.started is not None and time_s - self.started >= self.delay - 1e-12:
             self.tripped = True
         return self.tripped
+
+
+class ArcPole:
+    def __init__(self, parting_s=0.03, zero_tolerance_a=0.01):
+        from .core import positive
+
+        self.parting = positive(parting_s, allow_zero=True)
+        self.tolerance = positive(zero_tolerance_a, allow_zero=True)
+        self.command = None
+        self.closed = True
+        self.previous = None
+
+    def update(self, time_s, current_a, trip=False):
+        if not np.all(np.isfinite([time_s, current_a])):
+            raise ValueError("finite pole time and current required")
+        if trip and self.command is None:
+            self.command = time_s
+        parted = self.command is not None and time_s - self.command >= self.parting - 1e-12
+        crossing = self.previous is not None and self.previous * current_a <= 0
+        if parted and (abs(current_a) <= self.tolerance or crossing):
+            self.closed = False
+        self.previous = current_a
+        return self.closed
