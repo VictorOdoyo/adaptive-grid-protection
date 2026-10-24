@@ -165,6 +165,9 @@ def run(scenario):
     dt = 1 / scenario.sample_hz
     n = len(time)
     relay = [InverseRelay(400, "very", 0.03), InverseRelay(450, "very", 0.12)]
+    manager = setting_manager(scenario) if scenario.adaptive else None
+    group_revision = np.ones(n, int)
+    pickup_trace = np.zeros((n, 2))
     breakers = [Breaker(scenario.opening_s, scenario.primary_stuck), Breaker(scenario.opening_s)]
     if scenario.instrumented:
         from .frontend import CurrentFrontend
@@ -194,6 +197,19 @@ def run(scenario):
     previous_fault = False
     actual_inception = None
     for k, t in enumerate(time):
+        if manager is not None:
+            from .adaptive import commit
+
+            topology = f"source:{scenario.source_factor:g}"
+            if commit(manager, t, topology, t, fault_active=any(r.picked for r in relay)):
+                group = manager.active
+                relay = [
+                    InverseRelay(p, group.curve, tm)
+                    for p, tm in zip(group.pickups_a, group.multipliers, strict=True)
+                ]
+                events.append({"time_s": float(t), "device": "settings", "event": "adaptive_commit"})
+            group_revision[k] = manager.active.revision
+        pickup_trace[k] = [r.pickup for r in relay]
         for b in breakers:
             b.update(t)
         state = (
@@ -253,6 +269,8 @@ def run(scenario):
         cache[final_state] = equilibrium(scenario, *final_state[:2], fault_active=final_state[2])
     return {
         "time_s": time,
+        "group_revision": group_revision,
+        "pickup_a": pickup_trace,
         "ct_flux_vs": ct_flux,
         "adc_clipped": adc_clipped,
         "current_wave_a": waves,

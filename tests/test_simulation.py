@@ -66,3 +66,15 @@ def test_adaptive_group_covers_fault_envelope_before_activation():
     topology = manager.pending["topology"]
     assert commit(manager, 0.03, topology, 0.03)
     assert manager.active.pickups_a == (80.0, 100.0)
+
+
+def test_adaptive_settings_clear_weak_fault_that_conventional_pickup_misses():
+    from dataclasses import replace
+
+    weak = m.Scenario(source_factor=20, duration_s=0.8)
+    conventional = m.run(weak)
+    adaptive = m.run(replace(weak, adaptive=True))
+    assert not any(e["event"] == "trip" for e in conventional["events"])
+    assert any(e["device"] == "primary" and e["event"] == "open" for e in adaptive["events"])
+    assert not any(e["device"] == "backup" and e["event"] == "trip" for e in adaptive["events"])
+    assert adaptive["group_revision"][-1] == 2
