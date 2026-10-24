@@ -25,3 +25,21 @@ def integer(value, minimum=1):
     if type(value) is not int or value < minimum:
         raise ValueError("integer count required")
     return value
+
+
+A = np.exp(2j * np.pi / 3)
+SEQUENCE = np.array([[1, 1, 1], [1, A**2, A], [1, A, A**2]], complex)
+
+
+def abc(sequence):
+    value = finite(sequence)
+    if value.shape[-1] != 3:
+        raise ValueError("final axis must have three components")
+    return value @ SEQUENCE.T
+
+
+def seq(phases):
+    value = finite(phases)
+    if value.shape[-1] != 3:
+        raise ValueError("final axis must have three phases")
+    return value @ np.linalg.inv(SEQUENCE).T

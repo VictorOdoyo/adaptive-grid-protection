@@ -17,3 +17,9 @@ def test_positive_scalar_contract(value):
         m.positive(value)
     with pytest.raises(ValueError):
         m.integer(2.5)
+
+
+def test_sequence_roundtrip_and_positive_phase_rotation():
+    phases = m.abc([0, 100, 0])
+    assert np.allclose(phases, [100, 100 * np.exp(-2j * np.pi / 3), 100 * np.exp(2j * np.pi / 3)])
+    assert np.allclose(m.seq(phases), [0, 100, 0], atol=1e-12)
