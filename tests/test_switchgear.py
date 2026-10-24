@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from protectlab import switchgear as m
@@ -30,3 +31,10 @@ def test_arc_pole_waits_for_current_zero_after_contact_motion():
     assert pole.update(0.02, -100)
     assert pole.update(0.031, -50)
     assert not pole.update(0.04, 2)
+
+
+def test_sync_check_blocks_live_bus_phase_and_frequency_mismatch():
+    assert m.sync_check(230, 230 * np.exp(0.1j), 50, 50.05)
+    assert not m.sync_check(230, -230, 50, 50)
+    assert not m.sync_check(230, 230, 50, 50.5)
+    assert not m.sync_check(0, 230, 50, 50)

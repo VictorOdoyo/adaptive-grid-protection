@@ -83,3 +83,30 @@ class ArcPole:
             self.closed = False
         self.previous = current_a
         return self.closed
+
+
+def sync_check(
+    left_v,
+    right_v,
+    left_hz,
+    right_hz,
+    maximum_angle_rad=0.2,
+    maximum_slip_hz=0.1,
+    maximum_voltage_fraction=0.1,
+    minimum_v=10,
+):
+    from .core import finite, positive
+
+    left, right = complex(finite(left_v)), complex(finite(right_v))
+    minimum = positive(minimum_v)
+    if min(abs(left), abs(right)) < minimum:
+        return False
+    if not np.all(np.isfinite([left_hz, right_hz])):
+        return False
+    angle = abs(np.angle(left * np.conj(right)))
+    mismatch = abs(abs(left) - abs(right)) / max(abs(left), abs(right))
+    return bool(
+        angle <= positive(maximum_angle_rad)
+        and abs(left_hz - right_hz) <= positive(maximum_slip_hz)
+        and mismatch <= positive(maximum_voltage_fraction)
+    )
