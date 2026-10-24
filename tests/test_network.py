@@ -106,3 +106,13 @@ def test_driving_point_impedance_adds_source_and_line_series_matrices():
     source = m.balanced_source("g", "a", 230, 3j, 1j)
     line = m.Branch("l", "a", "b", np.eye(3) * (1 + 2j))
     assert np.allclose(m.driving_impedance(["a", "b"], [line], [source], "b"), source.z + line.z)
+
+
+@pytest.mark.parametrize("kind", ["ag", "bc", "bcg", "abcg"])
+def test_phase_constraint_solver_matches_independent_sequence_connections(kind):
+    source = m.balanced_source("g", "a", 230, 3 + 8j, 1 + 3j, 1.2 + 3.5j)
+    # bcg reference uses common ground resistance; independent phase resistors coincide at zero.
+    result = m.solve(["a"], [], [source], fault=m.fault_connection(["a"], "a", kind))
+    phase = m.currents(result, [], [source])["sources"]["g"]
+    expected = m.sequence_reference(230, 3 + 8j, 1 + 3j, 1.2 + 3.5j, kind)["phase_a"]
+    assert np.allclose(phase, expected)

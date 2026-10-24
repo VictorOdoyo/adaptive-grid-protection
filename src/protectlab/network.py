@@ -36,12 +36,19 @@ class Source:
         from .core import finite
 
         emf = finite(self.emf).copy()
-        checked = Branch(self.name, self.bus, self.bus + "__internal", self.z)
+        z = finite(self.z, ndim=2).copy()
+        if (
+            z.shape != (3, 3)
+            or np.linalg.matrix_rank(z) < 3
+            or np.linalg.eigvalsh((z + z.conj().T) / 2).min() < -1e-12
+        ):
+            raise ValueError("passive invertible source phase impedance required")
+        z.setflags(write=False)
         if emf.shape != (3,):
             raise ValueError("three RMS source phase emfs required")
         emf.setflags(write=False)
         object.__setattr__(self, "emf", emf)
-        object.__setattr__(self, "z", checked.z)
+        object.__setattr__(self, "z", z)
 
 
 def balanced_source(name, bus, phase_voltage_v, z0, z1, z2=None, angle_rad=0):
@@ -272,3 +279,26 @@ def driving_impedance(buses, branches, sources, bus, shunts=None):
     except np.linalg.LinAlgError as error:
         raise ValueError("driving impedance requires grounded nonsingular network") from error
     return response[indices[bus]]
+
+
+def sequence_reference(phase_emf_v, z0, z1, z2, kind="ag", fault_ohm=0):
+    from .core import abc, positive
+
+    resistance = positive(fault_ohm, allow_zero=True)
+    if kind == "ag":
+        i0 = phase_emf_v / (z0 + z1 + z2 + 3 * resistance)
+        sequence = np.array([i0, i0, i0])
+    elif kind == "bc":
+        i1 = phase_emf_v / (z1 + z2 + resistance)
+        sequence = np.array([0, i1, -i1])
+    elif kind == "abcg":
+        sequence = np.array([0, phase_emf_v / (z1 + resistance), 0])
+    elif kind == "bcg":
+        parallel = z0 + 3 * resistance
+        i1 = phase_emf_v / (z1 + z2 * parallel / (z2 + parallel))
+        i2 = -i1 * parallel / (z2 + parallel)
+        i0 = -i1 * z2 / (z2 + parallel)
+        sequence = np.array([i0, i1, i2])
+    else:
+        raise ValueError("independent reference supports ag bc bcg abcg")
+    return {"sequence_a": sequence, "phase_a": abc(sequence)}
