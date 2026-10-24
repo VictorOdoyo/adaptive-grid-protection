@@ -41,3 +41,8 @@ def test_balanced_load_does_not_pick_up_residual_earth_element():
     assert result["phase_pickup"]
     assert not result["ground_pickup"]
     assert m.phase_and_ground([100, 0, 0], 150, 20)["ground_pickup"]
+
+
+def test_voltage_restraint_is_bounded_and_reduces_fault_pickup():
+    pickup = m.voltage_restrained_pickup([0, 0.5, 1, 1.2], 100)
+    assert np.allclose(pickup, [25, 50, 100, 100])

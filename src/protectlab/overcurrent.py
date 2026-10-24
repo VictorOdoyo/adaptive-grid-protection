@@ -105,3 +105,12 @@ def phase_and_ground(current_phasors, phase_pickup_a, ground_pickup_a):
         "phase_pickup": phase > positive(phase_pickup_a),
         "ground_pickup": ground > positive(ground_pickup_a),
     }
+
+
+def voltage_restrained_pickup(voltage_pu, nominal_pickup_a, minimum_fraction=0.25):
+    from .core import finite, positive
+
+    voltage = finite(voltage_pu, real=True)
+    if np.any(voltage < 0) or not 0 < minimum_fraction <= 1:
+        raise ValueError("nonnegative voltage and restraint floor in (0,1] required")
+    return positive(nominal_pickup_a) * np.clip(voltage, minimum_fraction, 1.0)
