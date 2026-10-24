@@ -120,3 +120,21 @@ def robust_optimize(current_samples, pickups_a, pairs, **settings):
     ]
     result = optimize(samples.reshape(-1, samples.shape[-1]), pickups_a, expanded, **settings)
     return {**result, "sample_count": count, "constraint_count": len(expanded)}
+
+
+def discrete_settings(currents_a, pickups_a, pairs, available=(0.05, 0.1, 0.2, 0.3, 0.5), **settings):
+    from itertools import product
+
+    from .core import finite
+
+    levels = finite(available, real=True, ndim=1)
+    if np.any(levels <= 0) or len(levels) ** len(pickups_a) > 200000:
+        raise ValueError("positive discrete levels and bounded search space required")
+    best = None
+    for candidate in product(levels, repeat=len(pickups_a)):
+        certificate = audit(currents_a, pickups_a, candidate, pairs, **settings)
+        if certificate["coordinated"] and (best is None or sum(candidate) < best["objective"]):
+            best = {"multipliers": np.array(candidate), "objective": sum(candidate), "audit": certificate}
+    if best is None:
+        raise ValueError("no available discrete settings satisfy grading")
+    return best

@@ -29,3 +29,9 @@ def test_robust_coordination_certifies_every_sample_not_only_nominal():
     result = m.robust_optimize(samples, [100, 100], [(0, 0, 1)])
     assert result["constraint_count"] == 3
     assert result["audit"]["coordinated"]
+
+
+def test_discrete_settings_remain_coordinated_after_hardware_rounding():
+    result = m.discrete_settings([[500, 500]], [100, 100], [(0, 0, 1)])
+    assert result["audit"]["coordinated"]
+    assert all(x in (0.05, 0.1, 0.2, 0.3, 0.5) for x in result["multipliers"])
