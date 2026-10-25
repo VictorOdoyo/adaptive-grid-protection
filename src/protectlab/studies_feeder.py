@@ -143,3 +143,14 @@ def weak_adaptive(scale=1, seed=42):
         ["primary"],
         "A certified 80/100 A group is committed before fault inception, with a modeled 0.2 s grading margin.",
     )
+
+
+def earth(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(fault_kind="ag", source_factor=20, adaptive=True, sample_hz=3200 * scale, seed=seed),
+        "earth-fault-adaptive",
+        ["primary"],
+        "The single-line-to-ground case retains zero-sequence source and line impedances.",
+    )

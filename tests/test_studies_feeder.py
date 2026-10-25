@@ -1,3 +1,5 @@
+import numpy as np
+
 from protectlab import studies_feeder as m
 
 
@@ -20,3 +22,11 @@ def test_weak_source_adaptation_restores_selective_interruption():
     assert result["summary"]["selective"]
     assert result["summary"]["clearing_delay_s"] < 0.5
     assert result["arrays"]["group_revision"][-1] == 2
+
+
+def test_earth_fault_case_is_selective_with_unbalanced_phase_currents():
+    result = m.earth()
+    assert result["summary"]["selective"]
+    fault = (result["arrays"]["time_s"] > 0.15) & (result["arrays"]["time_s"] < 0.18)
+    current = result["arrays"]["true_current_a"][fault, 0]
+    assert np.max(abs(current[:, 0])) > np.max(abs(current[:, 1])) * 1.5
