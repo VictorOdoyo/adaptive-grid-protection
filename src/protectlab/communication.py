@@ -72,7 +72,9 @@ class Receiver:
     def latest(self, now_s):
         if self.message is None or not 0 <= now_s - self.message["sent_s"] <= self.maximum_age:
             return None
-        return self.message["payload"].copy()
+        from copy import deepcopy
+
+        return deepcopy(self.message["payload"])
 
 
 def permissive_trip(local_forward, local_pickup, remote_payload, channel_valid=True):

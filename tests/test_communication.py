@@ -38,3 +38,12 @@ def test_channel_metrics_separate_loss_from_delivered_latency():
     result = m.channel_metrics(c, [{**message, "received_s": 0.02}])
     assert result["delivery_fraction"] == 1
     assert result["maximum_delay_s"] == pytest.approx(0.02)
+
+
+def test_received_nested_payload_cannot_mutate_saved_message():
+    receiver = m.Receiver()
+    message = {"sender": "remote", "sequence": 1, "sent_s": 0.0, "payload": {"limits": [1, 2]}}
+    receiver.accept(message, 0.0)
+    exposed = receiver.latest(0.0)
+    exposed["limits"][0] = 99
+    assert receiver.latest(0.0)["limits"][0] == 1
