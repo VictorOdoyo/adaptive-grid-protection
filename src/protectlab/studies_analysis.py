@@ -52,3 +52,57 @@ def fault_references(scale=1, seed=42):
             "Unequal source positive and negative sequence impedances are retained.",
         ],
     )
+
+
+def inverter_limits(scale=1, seed=42):
+    from .core import abc, seq
+    from .inverters import Inverter, requested_current
+    from .results import curve, make
+
+    voltage = np.linspace(0.02, 1.1, 101 * scale)
+    reactive = Inverter("pv", "bus", 100, 230, negative_gain=0.8)
+    active = Inverter("pv", "bus", 100, 230, negative_gain=0.8, priority="active")
+    ir = np.array([requested_current(reactive, abc([0, 230 * v, 23 * np.exp(0.5j)])) for v in voltage])
+    ia = np.array([requested_current(active, abc([0, 230 * v, 23 * np.exp(0.5j)])) for v in voltage])
+    components = seq(ir)
+    peaks = np.max(abs(ir), axis=1)
+    return make(
+        "inverter-current-ceilings",
+        {
+            "rated_current_a": 100,
+            "phase_limit_a": 120,
+            "negative_gain": 0.8,
+            "negative_voltage_v": 23,
+            "seed": seed,
+        },
+        {"maximum_phase_current_a": float(peaks.max()), "limit_excess_a": float(max(0, peaks.max() - 120))},
+        {
+            "voltage_pu": voltage,
+            "reactive_priority": peaks,
+            "active_priority": np.max(abs(ia), axis=1),
+            "positive_reactive_a": -components[:, 1].imag,
+            "negative_a": abs(components[:, 2]),
+            "reactive_phase_a": ir,
+            "active_phase_a": ia,
+        },
+        [
+            curve(
+                "Active/reactive priority with a phase-current ceiling",
+                "voltage_pu",
+                [("reactive_priority", "reactive priority"), ("active_priority", "active priority")],
+                "Positive-sequence voltage (pu)",
+                "Maximum phase RMS current (A)",
+            ),
+            curve(
+                "Support allocation after the phase limiter",
+                "voltage_pu",
+                [("positive_reactive_a", "positive reactive current"), ("negative_a", "negative sequence")],
+                "Positive-sequence voltage (pu)",
+                "RMS current (A)",
+            ),
+        ],
+        assumptions=[
+            "Illustrative current-reference policy, not a manufacturer-specific inverter.",
+            "The final limiter acts on the sum of sequence currents in phase coordinates.",
+        ],
+    )
