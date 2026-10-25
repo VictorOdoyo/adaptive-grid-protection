@@ -106,3 +106,63 @@ def inverter_limits(scale=1, seed=42):
             "The final limiter acts on the sum of sequence currents in phase coordinates.",
         ],
     )
+
+
+def negative_sequence(scale=1, seed=42):
+    from .core import abc, seq
+    from .directional import negative_sequence as direction
+    from .inverters import Inverter, requested_current
+    from .results import curve, make
+
+    gains = np.linspace(0, 1, 51 * scale)
+    voltage = abc([0, 115, 23 * np.exp(0.4j)])
+    rows = []
+    for gain in gains:
+        model = Inverter("pv", "bus", 100, 230, negative_gain=float(gain))
+        current = requested_current(model, voltage)
+        operating = direction(voltage, current, minimum_current_a=1)
+        rows.append(
+            {
+                "gain": float(gain),
+                "negative_a": float(abs(seq(current)[2])),
+                "observable": bool(operating["valid"]),
+                "forward": bool(operating["forward"]),
+            }
+        )
+    return make(
+        "negative-sequence-observability",
+        {
+            "positive_voltage_v": 115,
+            "negative_voltage_v": 23,
+            "negative_angle_rad": 0.4,
+            "minimum_operating_current_a": 1,
+            "seed": seed,
+        },
+        {"zero_gain_observable": rows[0]["observable"], "full_gain_current_a": rows[-1]["negative_a"]},
+        {
+            "gain": gains,
+            "negative_a": [r["negative_a"] for r in rows],
+            "observable": [float(r["observable"]) for r in rows],
+        },
+        [
+            curve(
+                "Negative-sequence availability depends on inverter control",
+                "gain",
+                [("negative_a", "negative-sequence RMS")],
+                "Negative current gain",
+                "RMS current (A)",
+            ),
+            curve(
+                "Directional-element observability",
+                "gain",
+                [("observable", "valid = 1")],
+                "Negative current gain",
+                "Binary validity",
+            ),
+        ],
+        {"sweep": rows},
+        [
+            "Voltage unbalance alone does not guarantee negative-sequence operating current.",
+            "The torque direction shown belongs to this explicit current-reference policy.",
+        ],
+    )
