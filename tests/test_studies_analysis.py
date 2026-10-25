@@ -45,3 +45,9 @@ def test_robust_study_preserves_every_sample_margin():
     result = m.robust_coordination()
     assert result["summary"]["robust_settings_worst_margin_s"] >= 0.2 - 1e-9
     assert result["summary"]["nominal_settings_worst_margin_s"] < 0.2
+
+
+def test_differential_security_study_avoids_external_ratio_error_pickups():
+    result = m.differential_security()
+    assert result["summary"]["external_false_pickups"] == 0
+    assert result["summary"]["internal_pickups"] > 100

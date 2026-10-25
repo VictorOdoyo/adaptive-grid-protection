@@ -461,3 +461,67 @@ def robust_coordination(scale=1, seed=42):
             "Robust feasibility is established only for the supplied samples, not all possible faults.",
         ],
     )
+
+
+def differential_security(scale=1, seed=42):
+    from .differential import characteristic, harmonic_block
+    from .results import curve, make
+
+    current = np.linspace(0, 1500, 201 * scale)
+    external = characteristic(current, -0.9 * current)
+    internal = characteristic(current, 0.8 * current)
+    ratio = np.linspace(0, 0.4, 101 * scale)
+    blocked = harmonic_block(np.ones_like(ratio) * 100, ratio * 100)["blocked"]
+    return make(
+        "differential-security",
+        {
+            "external_ratio_error": 0.1,
+            "internal_remote_fraction": 0.8,
+            "pickup_a": 10,
+            "slope_low": 0.2,
+            "slope_high": 0.6,
+            "breakpoint_a": 200,
+            "seed": seed,
+        },
+        {
+            "external_false_pickups": int(np.sum(external["pickup"])),
+            "internal_pickups": int(np.sum(internal["pickup"])),
+            "harmonic_block_threshold": 0.15,
+        },
+        {
+            "current_a": current,
+            "external_operate": external["operate_a"],
+            "external_threshold": external["threshold_a"],
+            "internal_operate": internal["operate_a"],
+            "internal_threshold": internal["threshold_a"],
+            "ratio": ratio,
+            "blocked": blocked.astype(float),
+        },
+        [
+            curve(
+                "Through-current ratio error versus percentage restraint",
+                "current_a",
+                [("external_operate", "operate"), ("external_threshold", "restraint threshold")],
+                "Left-terminal RMS current (A)",
+                "Differential current (A)",
+            ),
+            curve(
+                "Internal fault with both currents into zone",
+                "current_a",
+                [("internal_operate", "operate"), ("internal_threshold", "restraint threshold")],
+                "Left-terminal RMS current (A)",
+                "Differential current (A)",
+            ),
+            curve(
+                "Second harmonic blocking",
+                "ratio",
+                [("blocked", "blocked = 1")],
+                "Second / fundamental RMS ratio",
+                "Binary block",
+            ),
+        ],
+        assumptions=[
+            "Static characteristic sweeps isolate element behavior; they do not reproduce transformer inrush physics.",
+            "Current polarity at both terminals points into the protected zone.",
+        ],
+    )
