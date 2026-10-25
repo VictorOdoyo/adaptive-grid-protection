@@ -47,3 +47,10 @@ def test_received_nested_payload_cannot_mutate_saved_message():
     exposed = receiver.latest(0.0)
     exposed["limits"][0] = 99
     assert receiver.latest(0.0)["limits"][0] == 1
+
+
+def test_transmitter_sequence_cannot_be_assigned_to_a_past_send_time():
+    channel = m.Channel()
+    channel.send(1.0, {})
+    with pytest.raises(ValueError, match="causal"):
+        channel.send(0.5, {})

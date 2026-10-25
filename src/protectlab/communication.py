@@ -15,13 +15,15 @@ class Channel:
         self.queue = Queue()
         self.sequence = 0
         self.sent = 0
+        self.last_sent = -np.inf
         self.dropped = 0
 
     def send(self, time_s, payload, sender="remote"):
         from copy import deepcopy
 
-        if not np.isfinite(time_s) or time_s < self.queue.now:
+        if not np.isfinite(time_s) or time_s < max(self.queue.now, self.last_sent):
             raise ValueError("finite causal send time required")
+        self.last_sent = float(time_s)
         self.sent += 1
         self.sequence += 1
         if self.rng.random() < self.loss:
