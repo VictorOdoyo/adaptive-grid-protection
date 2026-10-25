@@ -166,3 +166,67 @@ def negative_sequence(scale=1, seed=42):
             "The torque direction shown belongs to this explicit current-reference policy.",
         ],
     )
+
+
+def dc_rejection(scale=1, seed=42):
+    from .measurement import dft, mimic
+    from .results import curve, make
+    from .waveforms import rl_fault
+
+    fs = 3200 * scale
+    t = np.arange(round(0.2 * fs) + 1) / fs
+    current = rl_fault(t, 1, 0.03, 230, angle_rad=0.2)
+    raw = dft(t, current)
+    filtered = mimic(current, fs, 0.03)
+    corrected = dft(t, filtered["values"], quality=filtered["valid"])
+    expected = 230 * np.exp(0.2j) / (1 + 2j * np.pi * 50 * 0.03)
+    filtered_phasor = corrected["phasor"] / filtered["response"]
+    valid = corrected["valid"]
+    raw_error = abs(raw["phasor"] - expected) / abs(expected)
+    corrected_error = abs(filtered_phasor - expected) / abs(expected)
+    return make(
+        "dc-offset-rejection",
+        {
+            "resistance_ohm": 1,
+            "inductance_h": 0.03,
+            "voltage_rms_v": 230,
+            "frequency_hz": 50,
+            "inception_angle_rad": 0.2,
+            "sample_hz": fs,
+            "seed": seed,
+        },
+        {
+            "maximum_valid_raw_error": float(raw_error[valid].max()),
+            "maximum_valid_mimic_error": float(corrected_error[valid].max()),
+        },
+        {
+            "time_s": t,
+            "current_a": current,
+            "raw_error": raw_error,
+            "mimic_error": corrected_error,
+            "valid": valid,
+            "raw_phasor_a": raw["phasor"],
+            "mimic_phasor_a": filtered_phasor,
+        },
+        [
+            curve(
+                "Independent RL current with decaying offset",
+                "time_s",
+                [("current_a", "fault current")],
+                "Time (s)",
+                "Instantaneous current (A)",
+            ),
+            curve(
+                "Complex fundamental error includes phase",
+                "time_s",
+                [("raw_error", "full-cycle Fourier"), ("mimic_error", "mimic with phase correction")],
+                "Time (s)",
+                "Relative complex error",
+                valid="valid",
+            ),
+        ],
+        assumptions=[
+            "Mimic cancellation assumes the stated RL decay constant.",
+            "Its known complex frequency response is removed before phasor comparison.",
+        ],
+    )
