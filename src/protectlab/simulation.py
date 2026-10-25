@@ -307,6 +307,7 @@ def run(scenario):
         cache[final_state] = equilibrium(scenario, *final_state[:2], fault_active=final_state[2])
     return {
         "time_s": time,
+        "certified_groups": [] if manager is None else manager.evidence,
         "group_revision": group_revision,
         "forward": direction,
         "pickup_a": pickup_trace,

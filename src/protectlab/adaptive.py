@@ -109,6 +109,9 @@ class Manager:
 
         if not verify_certificate(initial, certificate):
             raise ValueError("initial settings require a valid modeled-envelope certificate")
+        from copy import deepcopy
+
+        self.evidence = [{"settings": initial.to_dict(), "certificate": deepcopy(certificate)}]
         self.active = initial
         self.maximum_age = positive(maximum_age_s)
         self.delay = positive(commit_delay_s, allow_zero=True)
@@ -127,6 +130,9 @@ class Manager:
             raise ValueError("matching topology and increasing setting revision required")
         if not verify_certificate(group, certificate):
             raise ValueError("setting certificate is invalid")
+        from copy import deepcopy
+
+        self.evidence.append({"settings": group.to_dict(), "certificate": deepcopy(certificate)})
         self.pending = {"group": group, "topology": topology, "observed_s": observed_s, "proposed_s": now_s}
         self.history.append({"time_s": now_s, "event": "proposed", "group": group.name})
 

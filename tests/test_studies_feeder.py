@@ -90,3 +90,16 @@ def test_temporary_fault_clears_without_late_trip():
     assert result["summary"]["selective"]
     assert result["arrays"]["primary_travel"][-1] == 0
     assert result["summary"]["final_junction_voltage_pu"] > 0.95
+
+
+def test_resolved_metadata_retains_exact_adaptive_certificate_and_instrument_constants():
+    from protectlab.adaptive import Group, verify_certificate
+
+    result = m.weak_adaptive()
+    groups = result["parameters"]["certified_groups"]
+    assert len(groups) == 2
+    for evidence in groups:
+        group = Group(**evidence["settings"])
+        assert verify_certificate(group, evidence["certificate"])
+    assert result["parameters"]["ct_ratio"] == 200
+    assert result["parameters"]["analog_filter_order"] == 2

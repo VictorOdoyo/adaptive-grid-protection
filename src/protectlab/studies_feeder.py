@@ -26,6 +26,21 @@ def evaluate(scenario, name, expected_open, description):
             "grading_s": 0.2,
             "breaker_failure_delay_s": 0.12,
             "expected_open": list(expected_open),
+            "certified_groups": capture["certified_groups"],
+            "source_base_z1_ohm": [0.3, 1.0],
+            "source_base_z0_ohm": [0.5, 3.0],
+            "ct_ratio": 200.0,
+            "ct_burden_ohm": 1.0,
+            "ct_magnetizing_h": 20.0,
+            "ct_saturated_h": 0.02,
+            "adc_bits": 16,
+            "analog_filter_order": 2,
+            "analog_cutoff_hz": min(800.0, 0.4 * scenario.sample_hz),
+            "directional_mta_rad": float(np.angle(0.4 + 1.2j)),
+            "memory_hold_s": 0.6,
+            "memory_minimum_v": 1000.0,
+            "inverse_reset_s": 0.1,
+            "inverse_dropout": 0.95,
         }
     )
     summary = {
