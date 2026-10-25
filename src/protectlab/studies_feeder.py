@@ -230,3 +230,14 @@ def healthy(scale=1, seed=42):
         [],
         "A fault-free export case measures relay security under reverse normal current.",
     )
+
+
+def temporary(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(removal_s=0.14, sample_hz=3200 * scale, seed=seed),
+        "temporary-fault",
+        [],
+        "The imposed fault is removed after 20 ms. Relay travel must decay without an unnecessary delayed trip.",
+    )

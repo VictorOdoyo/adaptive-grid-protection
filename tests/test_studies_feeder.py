@@ -83,3 +83,10 @@ def test_healthy_export_study_has_no_unnecessary_interruption():
     assert result["summary"]["selective"]
     assert result["summary"]["clearing_delay_s"] is None
     assert not result["tables"]["events"]
+
+
+def test_temporary_fault_clears_without_late_trip():
+    result = m.temporary()
+    assert result["summary"]["selective"]
+    assert result["arrays"]["primary_travel"][-1] == 0
+    assert result["summary"]["final_junction_voltage_pu"] > 0.95
