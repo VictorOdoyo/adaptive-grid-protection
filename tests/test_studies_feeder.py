@@ -39,3 +39,10 @@ def test_phase_fault_replay_is_selective_without_ground_fault_current():
     assert result["summary"]["selective"]
     current = result["arrays"]["true_current_a"][500, 0]
     assert abs(seq(current)[0]) < abs(seq(current)[1]) * 0.01
+
+
+def test_instrumented_fault_records_ct_state_and_clears():
+    result = m.instrumented()
+    assert result["summary"]["selective"]
+    assert np.max(abs(result["arrays"]["ct_flux_vs"])) > 0
+    assert not np.any(result["arrays"]["adc_clipped"])

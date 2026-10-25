@@ -165,3 +165,14 @@ def phase_fault(scale=1, seed=42):
         ["primary"],
         "Line-to-line faults have no direct ground connection and cannot rely on residual-current pickup.",
     )
+
+
+def instrumented(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(instrumented=True, adc_scale_a=40.0, dc_tau_s=0.04, sample_hz=3200 * scale, seed=seed),
+        "instrumented-fault",
+        ["primary"],
+        "Nonlinear CT, causal low-pass, 16-bit ADC and full-cycle estimation precede both relays.",
+    )
