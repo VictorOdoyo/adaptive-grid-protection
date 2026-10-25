@@ -15,3 +15,10 @@ def test_mean_uncertainty_is_narrower_than_individual_clearing_variation():
     low, high = m.mean_interval(values)
     assert low < 0.2 < high
     assert high - low < 0.05
+
+
+def test_unavailable_fault_remains_in_the_missed_protection_denominator():
+    result = m.classification([True, True, False], [True, False, False], [True, False, True])
+    assert result["sensitivity"] == 0.5
+    assert result["security"] == 1
+    assert result["unavailable"] == 1

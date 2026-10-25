@@ -33,3 +33,26 @@ def mean_interval(samples, confidence=0.95, resamples=2000, seed=42):
     means = np.mean(values[indices], axis=1)
     tail = (1 - confidence) / 2
     return tuple(float(v) for v in np.quantile(means, [tail, 1 - tail]))
+
+
+def classification(actual_fault, tripped, available=None):
+    fault = np.asarray(actual_fault)
+    operation = np.asarray(tripped)
+    quality = np.ones(fault.shape, bool) if available is None else np.asarray(available)
+    if fault.ndim != 1 or operation.shape != fault.shape or quality.shape != fault.shape:
+        raise ValueError("aligned trial labels required")
+    if any(x.dtype != bool for x in (fault, operation, quality)) or len(fault) == 0:
+        raise ValueError("nonempty boolean labels required")
+    tp = int(np.sum(fault & operation))
+    fn = int(np.sum(fault & ~operation))
+    fp = int(np.sum(~fault & operation))
+    tn = int(np.sum(~fault & ~operation))
+    return {
+        "true_positive": tp,
+        "false_negative": fn,
+        "false_positive": fp,
+        "true_negative": tn,
+        "unavailable": int(np.sum(~quality)),
+        "sensitivity": None if tp + fn == 0 else tp / (tp + fn),
+        "security": None if tn + fp == 0 else tn / (tn + fp),
+    }
