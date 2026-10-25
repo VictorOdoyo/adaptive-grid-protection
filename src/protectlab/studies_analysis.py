@@ -411,7 +411,10 @@ def robust_coordination(scale=1, seed=42):
 
     rng = stream(seed, "coordination-envelope")
     nominal = np.array([[500.0, 450.0], [700.0, 600.0]])
-    samples = np.maximum(150, nominal[None, :, :] * (1 + rng.normal(0, 0.12, (40 * scale, 2, 2))))
+    deviation = rng.multivariate_normal(
+        [0.0, 0.0], 0.12**2 * np.array([[1.0, 0.6], [0.6, 1.0]]), size=(40 * scale, 2)
+    )
+    samples = np.maximum(150, nominal[None, :, :] * (1 + deviation))
     pairs = [(0, 0, 1), (1, 0, 1)]
     conventional = optimize(nominal, [100, 100], pairs)
     robust = robust_optimize(samples, [100, 100], pairs)
@@ -429,6 +432,7 @@ def robust_coordination(scale=1, seed=42):
         {
             "nominal_currents_a": nominal,
             "relative_std": 0.12,
+            "relay_current_correlation": 0.6,
             "sample_count": len(samples),
             "pickups_a": [100, 100],
             "grading_s": 0.2,
