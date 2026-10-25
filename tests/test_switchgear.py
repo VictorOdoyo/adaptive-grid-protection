@@ -55,3 +55,14 @@ def test_clearing_time_does_not_confuse_trip_with_interruption():
     assert result["clearing_s"] == pytest.approx(0.09)
     assert result["breaker_s"] == pytest.approx(0.04)
     assert m.clearing_metrics(0.1, None, None, None)["clearing_s"] is None
+
+
+def test_arc_and_reclose_state_machines_reject_reversed_clocks():
+    pole = m.ArcPole()
+    pole.update(0.1, 10)
+    with pytest.raises(ValueError, match="monotone"):
+        pole.update(0.09, -10)
+    recloser = m.Recloser()
+    recloser.update(0.1, True)
+    with pytest.raises(ValueError, match="monotone"):
+        recloser.update(0.09, False)

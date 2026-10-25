@@ -19,3 +19,12 @@ def test_contact_chatter_does_not_commit_unstable_topology():
     assert d.update(0.02, "a") is None
     assert d.update(0.03, "a") is None
     assert d.update(0.04, "a") == "a"
+
+
+def test_topology_debounce_rejects_reverse_time():
+    import pytest
+
+    debounce = m.Debounce()
+    debounce.update(0.1, "a")
+    with pytest.raises(ValueError, match="monotone"):
+        debounce.update(0.09, "b")

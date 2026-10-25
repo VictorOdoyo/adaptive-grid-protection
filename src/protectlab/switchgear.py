@@ -69,10 +69,14 @@ class ArcPole:
         self.parting = positive(parting_s, allow_zero=True)
         self.tolerance = positive(zero_tolerance_a, allow_zero=True)
         self.command = None
+        self.last_time = -np.inf
         self.closed = True
         self.previous = None
 
     def update(self, time_s, current_a, trip=False):
+        if time_s < self.last_time:
+            raise ValueError("monotone arc clock required")
+        self.last_time = time_s
         if not np.all(np.isfinite([time_s, current_a])):
             raise ValueError("finite pole time and current required")
         if trip and self.command is None:
@@ -121,11 +125,13 @@ class Recloser:
         self.shots = 0
         self.opened = None
         self.previous_closed = True
+        self.last_time = -np.inf
         self.locked = False
 
     def update(self, time_s, closed, permitted=False):
-        if not np.isfinite(time_s):
-            raise ValueError("finite recloser time required")
+        if not np.isfinite(time_s) or time_s < self.last_time:
+            raise ValueError("monotone finite recloser time required")
+        self.last_time = time_s
         if self.previous_closed and not closed:
             self.opened = time_s
             if self.shots >= self.maximum:

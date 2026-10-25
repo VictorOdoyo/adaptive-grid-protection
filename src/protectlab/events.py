@@ -36,10 +36,12 @@ class Debounce:
         self.candidate = None
         self.started = None
         self.value = None
+        self.last_time = -np.inf
 
     def update(self, time_s, value):
-        if not np.isfinite(time_s):
-            raise ValueError("finite topology sample time required")
+        if not np.isfinite(time_s) or time_s < self.last_time:
+            raise ValueError("monotone finite topology sample time required")
+        self.last_time = time_s
         if value != self.candidate:
             self.candidate = value
             self.started = time_s
