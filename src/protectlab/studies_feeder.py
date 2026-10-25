@@ -121,3 +121,14 @@ def strong(scale=1, seed=42):
         ["primary"],
         "Conventional settings protect the downstream zone with a strong conventional source.",
     )
+
+
+def weak_static(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(source_factor=20, sample_hz=3200 * scale, seed=seed),
+        "weak-source-static",
+        ["primary"],
+        "Conventional 400 A pickup is intentionally retained after source strength decreases.",
+    )
