@@ -68,3 +68,9 @@ def test_pilot_latency_study_keeps_stale_permission_unavailable():
     result = m.pilot_latency()
     assert result["summary"]["unavailable_points"] > 10
     assert result["summary"]["available_points"] > 10
+
+
+def test_adaptive_guard_study_waits_until_fault_pickup_clears():
+    result = m.adaptive_guard()
+    assert not result["summary"]["committed_during_fault"]
+    assert result["summary"]["commit_time_s"] >= 0.22

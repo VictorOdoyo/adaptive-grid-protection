@@ -720,3 +720,51 @@ def pilot_latency(scale=1, seed=42):
             "No permission is inferred from silence, stale messages or missing packets.",
         ],
     )
+
+
+def adaptive_guard(scale=1, seed=42):
+    from .adaptive import Group, Manager, certify, commit
+    from .results import curve, make
+
+    base = Group("base", "normal", 1, (100, 100), (0.05, 0.2))
+    candidate = Group("weak", "weak", 2, (80, 80), (0.05, 0.2))
+    manager = Manager(base, certify(base, [[500, 500]], [(0, 0, 1)]), commit_delay_s=0.03)
+    manager.propose(candidate, certify(candidate, [[400, 400]], [(0, 0, 1)]), "weak", 0.1, 0.1)
+    t = np.linspace(0.1, 0.3, 201 * scale)
+    revisions = []
+    fault = (t >= 0.12) & (t < 0.22)
+    for when, active in zip(t, fault, strict=True):
+        commit(manager, float(when), "weak", float(when), fault_active=bool(active))
+        revisions.append(manager.active.revision)
+    commits = [row["time_s"] for row in manager.history if row["event"] == "committed"]
+    return make(
+        "adaptive-transition-guards",
+        {
+            "commit_delay_s": 0.03,
+            "proposal_s": 0.1,
+            "fault_window_s": [0.12, 0.22],
+            "base_pickups_a": [100, 100],
+            "candidate_pickups_a": [80, 80],
+            "seed": seed,
+        },
+        {"commit_time_s": commits[0], "committed_during_fault": bool(0.12 <= commits[0] < 0.22)},
+        {"time_s": t, "revision": revisions, "fault": fault.astype(float)},
+        [
+            curve(
+                "Active pickup freezes pending setting transitions",
+                "time_s",
+                [("revision", "active revision"), ("fault", "active pickup stimulus = 1")],
+                "Time (s)",
+                "Revision / binary state",
+            )
+        ],
+        {
+            "events": [
+                {"time_s": r["time_s"], "event": r["event"], "group": r["group"]} for r in manager.history
+            ]
+        },
+        [
+            "The active-fault input is a declared policy stimulus; feeder replays use measured relay pickup.",
+            "The certificate covers an explicit current envelope and is not a cryptographic signature.",
+        ],
+    )
