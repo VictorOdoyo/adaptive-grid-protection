@@ -82,3 +82,20 @@ def read_csv(path, nominal_hz=50):
         np.array([row["valid"] == "1" for row in rows]),
         nominal_hz,
     )
+
+
+def audit(record):
+    dt = np.diff(record.time_s)
+    spacing = float(np.mean(dt))
+    uniform = bool(np.allclose(dt, spacing, rtol=1e-8, atol=spacing * 1e-10))
+    cycle = 1 / (spacing * record.nominal_hz)
+    return {
+        "sample_hz": 1 / spacing,
+        "uniform": uniform,
+        "samples": len(record.time_s),
+        "samples_per_cycle": cycle,
+        "integer_cycle": abs(cycle - round(cycle)) < 1e-8,
+        "valid_fraction": float(np.mean(record.valid)),
+        "maximum_gap_s": float(np.max(dt)),
+        "duration_s": float(record.time_s[-1] - record.time_s[0]),
+    }

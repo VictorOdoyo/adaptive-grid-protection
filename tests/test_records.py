@@ -34,3 +34,12 @@ def test_csv_roundtrip_preserves_primary_phases_and_flags(tmp_path):
     assert np.array_equal(restored.current_a, record.current_a)
     assert np.array_equal(restored.voltage_v, record.voltage_v)
     assert np.array_equal(restored.valid, record.valid)
+
+
+def test_import_audit_exposes_timestamp_gap_and_quality_loss():
+    time = np.arange(100) / 3200
+    time[50:] += 0.001
+    record = m.Record(time, np.ones((100, 3)), np.ones((100, 3)), np.arange(100) != 20)
+    audit = m.audit(record)
+    assert not audit["uniform"]
+    assert audit["valid_fraction"] == pytest.approx(0.99)
