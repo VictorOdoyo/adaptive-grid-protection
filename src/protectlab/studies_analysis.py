@@ -402,3 +402,62 @@ def coordination(scale=1, seed=42):
             "Curve separation at equal current is illustrative; grading is certified at the distinct local currents in the fault matrix."
         ],
     )
+
+
+def robust_coordination(scale=1, seed=42):
+    from .coordination import audit, optimize, robust_optimize
+    from .core import stream
+    from .results import curve, make
+
+    rng = stream(seed, "coordination-envelope")
+    nominal = np.array([[500.0, 450.0], [700.0, 600.0]])
+    samples = np.maximum(150, nominal[None, :, :] * (1 + rng.normal(0, 0.12, (40 * scale, 2, 2))))
+    pairs = [(0, 0, 1), (1, 0, 1)]
+    conventional = optimize(nominal, [100, 100], pairs)
+    robust = robust_optimize(samples, [100, 100], pairs)
+    nominal_margins = []
+    robust_margins = []
+    for sample in samples:
+        nominal_margins.append(
+            min(r["margin_s"] for r in audit(sample, [100, 100], conventional["multipliers"], pairs)["rows"])
+        )
+        robust_margins.append(
+            min(r["margin_s"] for r in audit(sample, [100, 100], robust["multipliers"], pairs)["rows"])
+        )
+    return make(
+        "robust-coordination",
+        {
+            "nominal_currents_a": nominal,
+            "relative_std": 0.12,
+            "sample_count": len(samples),
+            "pickups_a": [100, 100],
+            "grading_s": 0.2,
+            "seed": seed,
+        },
+        {
+            "nominal_settings_worst_margin_s": min(nominal_margins),
+            "robust_settings_worst_margin_s": min(robust_margins),
+        },
+        {
+            "sample": np.arange(1, len(samples) + 1),
+            "nominal_margin": nominal_margins,
+            "robust_margin": robust_margins,
+            "current_samples_a": samples,
+        },
+        [
+            curve(
+                "Worst primary-backup margin for each sampled condition",
+                "sample",
+                [
+                    ("nominal_margin", "nominal optimization"),
+                    ("robust_margin", "sample-envelope optimization"),
+                ],
+                "Fault-current sample",
+                "Grading margin (s)",
+            )
+        ],
+        assumptions=[
+            "Samples are an assumed stress envelope, not measured grid uncertainty.",
+            "Robust feasibility is established only for the supplied samples, not all possible faults.",
+        ],
+    )

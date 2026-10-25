@@ -39,3 +39,9 @@ def test_ct_burden_study_shows_increased_saturation_exposure():
 
 def test_coordination_study_reports_audited_margin_not_only_optimizer_status():
     assert m.coordination()["summary"]["minimum_margin_s"] >= 0.2 - 1e-9
+
+
+def test_robust_study_preserves_every_sample_margin():
+    result = m.robust_coordination()
+    assert result["summary"]["robust_settings_worst_margin_s"] >= 0.2 - 1e-9
+    assert result["summary"]["nominal_settings_worst_margin_s"] < 0.2
