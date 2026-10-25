@@ -23,3 +23,14 @@ def test_csv_has_unit_labels_explicit_quality_and_platform_stable_lf(tmp_path):
     assert b"ia_a" in text and b"va_v" in text
     assert b"\r\n" not in text
     assert text.splitlines()[-1].endswith(b",0")
+
+
+def test_csv_roundtrip_preserves_primary_phases_and_flags(tmp_path):
+    rng = np.random.default_rng(2)
+    record = m.Record(
+        np.arange(100) / 3200, rng.normal(size=(100, 3)), rng.normal(size=(100, 3)), np.arange(100) % 10 != 0
+    )
+    restored = m.read_csv(m.write_csv(record, tmp_path / "record.csv"))
+    assert np.array_equal(restored.current_a, record.current_a)
+    assert np.array_equal(restored.voltage_v, record.voltage_v)
+    assert np.array_equal(restored.valid, record.valid)

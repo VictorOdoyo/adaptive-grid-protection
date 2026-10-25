@@ -53,3 +53,32 @@ def write_csv(record, path):
                 [repr(float(t)), *[repr(float(x)) for x in v], *[repr(float(x)) for x in i], int(q)]
             )
     return path
+
+
+def read_csv(path, nominal_hz=50):
+    import csv
+    from pathlib import Path
+
+    with Path(path).open(encoding="utf-8", newline="") as stream:
+        reader = csv.DictReader(stream)
+        if reader.fieldnames != list(COLUMNS):
+            raise ValueError("CSV must use exact primary-unit channel schema")
+        rows = list(reader)
+    if len(rows) < 2:
+        raise ValueError("at least two waveform samples required")
+    numeric = []
+    for row in rows:
+        if None in row or row["valid"] not in ("0", "1"):
+            raise ValueError("complete samples and binary quality required")
+        try:
+            numeric.append([float(row[name]) for name in COLUMNS[:-1]])
+        except (TypeError, ValueError) as error:
+            raise ValueError("numeric waveform channels required") from error
+    values = np.asarray(numeric)
+    return Record(
+        values[:, 0],
+        values[:, 1:4],
+        values[:, 4:7],
+        np.array([row["valid"] == "1" for row in rows]),
+        nominal_hz,
+    )
