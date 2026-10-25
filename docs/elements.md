@@ -43,6 +43,8 @@ sum of terminal magnitudes. Continuous dual slopes raise the threshold at high
 through current. Ratio/clock and optional zero-sequence compensation are explicit.
 
 Second-harmonic blocking has minimum fundamental observability and optional
-cross-phase blocking. The freshness/skew supervisor blocks stale, future or
+cross-phase blocking. Clock compensation rotates positive and negative sequences in
+opposite directions; retained zero sequence has no clock rotation. Grounding paths
+must still be modeled explicitly. The freshness/skew supervisor blocks stale, future or
 unsynchronized remote data. Static inrush blocking tests do not simulate transformer
 energization physics.

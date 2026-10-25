@@ -38,7 +38,7 @@ def harmonic_block(fundamental, second, threshold=0.15, cross_phase=False, minim
 
 
 def compensate(current, ratio=1.0, clock=0, remove_zero_sequence=False):
-    from .core import finite, integer, positive
+    from .core import abc, finite, integer, positive, seq
 
     i = finite(current)
     if i.shape[-1] != 3:
@@ -46,9 +46,12 @@ def compensate(current, ratio=1.0, clock=0, remove_zero_sequence=False):
     integer(clock, 0)
     if clock > 11:
         raise ValueError("transformer clock must be 0 to 11")
+    components = seq(i)
     if remove_zero_sequence:
-        i = i - np.mean(i, axis=-1, keepdims=True)
-    return i * positive(ratio) * np.exp(-1j * clock * np.pi / 6)
+        components[..., 0] = 0
+    angle = clock * np.pi / 6
+    rotation = np.array([1, np.exp(-1j * angle), np.exp(1j * angle)])
+    return abc(components * rotation) * positive(ratio)
 
 
 def supervised(

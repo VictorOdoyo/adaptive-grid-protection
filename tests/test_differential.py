@@ -37,3 +37,12 @@ def test_stale_or_skewed_differential_channel_blocks_trip():
     assert not m.supervised(100, 100, 0.1, 0.11, 0.11)["trip"]
     assert not m.supervised(100, 100, 0.1, 0.1, 0.2)["trip"]
     assert not m.supervised(100, 100, 0.2, 0.2, 0.1)["trip"]
+
+
+def test_transformer_clock_rotates_negative_sequence_opposite_to_positive():
+    from protectlab.core import abc, seq
+
+    angle = np.pi / 6
+    measured = abc([7, 100 * np.exp(1j * angle), 20 * np.exp(-1j * angle)]) / 2
+    compensated = seq(m.compensate(measured, 2, 1))
+    assert np.allclose(compensated, [7, 100, 20], atol=1e-12)
