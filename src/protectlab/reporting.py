@@ -260,3 +260,112 @@ def plot_result(result, path):
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
+
+
+def write_report(result, directory):
+    import hashlib
+    import html
+    from pathlib import Path
+
+    from .results import native
+
+    if "provenance" not in result:
+        result = stamp(result, {"case": result["name"], "parameters": result["parameters"]})
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    save_archive(result, directory / "fields.npz")
+    export_data(result, directory)
+    plot_result(result, directory / "figure.png")
+
+    def escape(value):
+        return html.escape(str(native(value)))
+
+    summary_rows = "".join(
+        "<tr><th>" + escape(key) + "</th><td>" + escape(value) + "</td></tr>"
+        for key, value in result["summary"].items()
+    )
+    assumptions = "".join("<li>" + escape(item) + "</li>" for item in result["assumptions"])
+    tables = "".join(
+        '<li><a href="table_' + key + '.csv">' + escape(key) + " CSV</a></li>"
+        for key, rows in result["tables"].items()
+        if rows
+    )
+    title = escape(result["name"])
+    source = result["provenance"]
+    document = f"""<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} | Adaptive Grid Protection</title>
+<style>body{{font:16px system-ui;max-width:1300px;margin:3rem auto;padding:0 1rem;color:#172033}}
+img{{width:100%;height:auto}}table{{border-collapse:collapse;width:100%}}td,th{{padding:.55rem;border-bottom:1px solid #dce1ea;text-align:left}}
+code{{overflow-wrap:anywhere}}a{{color:#164ac4}}</style>
+<h1>{title}</h1><p>Reproducible sampled grid protection. Units and field components are printed on the
+scientific axes. RMS phasors use exp(+i omega t); terminal currents point into the protected line.</p>
+<p><a href="fields.npz">Sealed numeric archive</a> | <a href="summary.csv">Summary CSV</a> |
+<a href="parameters.json">Physical parameters</a> | <a href="configuration.json">Run request</a> |
+<a href="provenance.json">Source and environment</a></p>
+<img src="figure.png" alt="Scientific curves and electromagnetic field maps for {title}">
+<table>{summary_rows}</table><h2>Data tables</h2><ul>{tables}</ul>
+<h2>Assumptions and interpretation</h2><ul>{assumptions}</ul>
+<p>These are simulations, not hardware measurements. Network-model, measurement, timing and statistical
+uncertainty require distinct convergence checks. Singular or unilluminated data use explicit masks.</p>
+<p>Source revision: <code>{escape(source["git_revision"])}</code>.
+Dirty checkout: <code>{escape(source["git_dirty"])}</code>.
+Configuration SHA-256: <code>{escape(source["configuration_sha256"])}</code>.</p>
+<p>Replay preserves original source and parameter provenance. SHA-256 manifests detect changed bytes;
+they are unsigned integrity records, not certificates of physical validity.</p></html>"""
+    (directory / "index.html").write_text(document + "\n", encoding="utf-8", newline="\n")
+    files = [
+        "fields.npz",
+        "figure.png",
+        "summary.csv",
+        "summary.json",
+        "parameters.json",
+        "configuration.json",
+        "provenance.json",
+        "index.html",
+    ]
+    files.extend("table_" + key + ".csv" for key, rows in result["tables"].items() if rows)
+    manifest = {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in sorted(files)}
+    write_json(directory / "manifest.json", manifest)
+    return directory / "index.html"
+
+
+def verify_report(directory):
+    import hashlib
+    import json
+    import re
+    from pathlib import Path
+
+    directory = Path(directory)
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    required = {
+        "fields.npz",
+        "figure.png",
+        "summary.csv",
+        "summary.json",
+        "parameters.json",
+        "configuration.json",
+        "provenance.json",
+        "index.html",
+    }
+    if not isinstance(manifest, dict) or not required.issubset(manifest):
+        raise ValueError("complete report manifest required")
+    for name, expected in manifest.items():
+        if (
+            Path(name).name != name
+            or "/" in name
+            or "\\" in name
+            or not isinstance(expected, str)
+            or not re.fullmatch(r"[a-f0-9]{64}", expected)
+        ):
+            raise ValueError("manifest requires safe local filenames and SHA-256 digests")
+        if hashlib.sha256((directory / name).read_bytes()).hexdigest() != expected:
+            raise ValueError("report integrity mismatch: " + name)
+    result = load_archive(directory / "fields.npz")
+    for key in ("summary", "parameters", "configuration", "provenance"):
+        exported = json.loads((directory / (key + ".json")).read_text(encoding="utf-8"))
+        if digest(exported) != digest(result[key]):
+            raise ValueError("exported metadata disagrees with archive: " + key)
+    for key, rows in result["tables"].items():
+        if rows and "table_" + key + ".csv" not in manifest:
+            raise ValueError("manifest omits an exported data table")
+    return True

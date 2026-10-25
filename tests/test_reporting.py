@@ -97,3 +97,29 @@ def test_renderer_handles_curves_complex_components_and_masked_singular_regions(
     result["plots"].append(image("Complex field magnitude", "map", grid, "|E| (V/m)", "abs", "mask"))
     path = m.plot_result(result, tmp_path / "figure.png")
     assert path.read_bytes().startswith(b"\x89PNG")
+
+
+def test_html_report_escapes_metadata_and_records_all_physical_data(tmp_path):
+    result = _example()
+    result["summary"]["unsafe_label"] = "<script>bad()</script>"
+    result["assumptions"] = ["<b>literal text</b>"]
+    path = m.write_report(result, tmp_path)
+    text = path.read_text(encoding="utf-8")
+    assert "<script>" not in text and "&lt;script&gt;" in text
+    assert "&lt;b&gt;" in text and "Physical parameters" in text
+    assert (tmp_path / "fields.npz").is_file()
+    assert (tmp_path / "table_samples.csv").is_file()
+    assert b"\r\n" not in path.read_bytes()
+
+
+def test_report_verification_detects_changed_tables_and_incomplete_manifests(tmp_path):
+    import json
+
+    m.write_report(_example(), tmp_path)
+    assert m.verify_report(tmp_path)
+    (tmp_path / "table_samples.csv").write_text("changed", encoding="utf-8")
+    with pytest.raises(ValueError, match="integrity"):
+        m.verify_report(tmp_path)
+    (tmp_path / "manifest.json").write_text(json.dumps({"fields.npz": "0" * 64}), encoding="utf-8")
+    with pytest.raises(ValueError, match="complete"):
+        m.verify_report(tmp_path)
