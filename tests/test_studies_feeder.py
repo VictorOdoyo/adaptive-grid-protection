@@ -62,3 +62,10 @@ def test_clipped_fault_study_reports_failed_isolation_and_quality_flags():
     assert not result["summary"]["required_isolation"]
     assert np.any(result["arrays"]["adc_clipped"])
     assert result["summary"]["primary_measurement_valid_fraction"] < 0.5
+
+
+def test_breaker_failure_study_records_backup_clearance_after_failed_primary():
+    result = m.breaker_failure()
+    assert result["summary"]["selective"]
+    assert any(e["event"] == "breaker_failure" for e in result["tables"]["events"])
+    assert result["summary"]["final_junction_voltage_pu"] == 0

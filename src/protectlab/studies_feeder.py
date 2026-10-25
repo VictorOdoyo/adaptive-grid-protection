@@ -197,3 +197,14 @@ def clipping(scale=1, seed=42):
         ["primary"],
         "The ADC rail is intentionally too small. Invalid windows are blocked and the missed operation is retained.",
     )
+
+
+def breaker_failure(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(primary_stuck=True, sample_hz=3200 * scale, seed=seed),
+        "breaker-failure",
+        ["backup"],
+        "The primary trip is latched but its breaker is stuck. Persistent measured current starts 50BF backup.",
+    )
