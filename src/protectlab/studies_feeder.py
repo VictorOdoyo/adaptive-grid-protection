@@ -219,3 +219,14 @@ def reverse_infeed(scale=1, seed=42):
         ["backup"],
         "High inverter export is an intentional stress case. Conventional memory torque may classify reverse fault current as forward.",
     )
+
+
+def healthy(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(fault_kind="none", inverter_current_a=300, sample_hz=3200 * scale, seed=seed),
+        "healthy-export",
+        [],
+        "A fault-free export case measures relay security under reverse normal current.",
+    )

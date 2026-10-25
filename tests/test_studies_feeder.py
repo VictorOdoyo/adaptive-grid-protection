@@ -76,3 +76,10 @@ def test_directional_challenge_reports_sympathetic_primary_opening():
     assert not result["summary"]["selective"]
     assert result["summary"]["unnecessary_openings"] == 1
     assert result["summary"]["required_isolation"]
+
+
+def test_healthy_export_study_has_no_unnecessary_interruption():
+    result = m.healthy()
+    assert result["summary"]["selective"]
+    assert result["summary"]["clearing_delay_s"] is None
+    assert not result["tables"]["events"]
