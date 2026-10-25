@@ -294,3 +294,62 @@ def off_nominal(scale=1, seed=42):
             "This offline fit is not a claimed causal real-time frequency tracker.",
         ],
     )
+
+
+def ct_burden(scale=1, seed=42):
+    from .instrument import CT, simulate
+    from .results import curve, make
+    from .waveforms import rl_fault
+
+    fs = 6400 * scale
+    t = np.arange(round(0.16 * fs) + 1) / fs
+    primary = rl_fault(t, 0.2, 0.01, 6000)
+    captures = [simulate(t, primary, CT(burden_ohm=r, knee_vs=0.04)) for r in (0.2, 1.0, 3.0)]
+    fractions = [float(np.mean(c["saturated"])) for c in captures]
+    arrays = {"time_s": t, "ideal_secondary_a": primary / 200, "primary_a": primary}
+    for k, capture in enumerate(captures):
+        arrays[f"secondary_{k}"] = capture["secondary_a"]
+        arrays[f"flux_{k}"] = capture["flux_vs"]
+    return make(
+        "ct-burden-sensitivity",
+        {
+            "primary_source_rms_v": 6000,
+            "primary_resistance_ohm": 0.2,
+            "primary_inductance_h": 0.01,
+            "ratio": 200,
+            "knee_vs": 0.04,
+            "burdens_ohm": [0.2, 1, 3],
+            "sample_hz": fs,
+            "seed": seed,
+        },
+        {"low_burden_saturated_fraction": fractions[0], "high_burden_saturated_fraction": fractions[-1]},
+        arrays,
+        [
+            curve(
+                "Burden changes secondary distortion",
+                "time_s",
+                [
+                    ("ideal_secondary_a", "ideal ratio"),
+                    ("secondary_0", "0.2 ohm"),
+                    ("secondary_1", "1 ohm"),
+                    ("secondary_2", "3 ohm"),
+                ],
+                "Time (s)",
+                "Secondary current (A)",
+            ),
+            curve(
+                "Flux-linkage state retained for each burden",
+                "time_s",
+                [("flux_0", "0.2 ohm"), ("flux_1", "1 ohm"), ("flux_2", "3 ohm")],
+                "Time (s)",
+                "Secondary flux linkage (V s)",
+            ),
+        ],
+        {
+            "burdens": [
+                {"burden_ohm": r, "saturated_fraction": f}
+                for r, f in zip((0.2, 1, 3), fractions, strict=True)
+            ]
+        },
+        ["Piecewise-linear magnetization without hysteresis or a manufacturer CT accuracy-class claim."],
+    )

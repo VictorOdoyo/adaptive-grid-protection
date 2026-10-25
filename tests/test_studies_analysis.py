@@ -27,3 +27,11 @@ def test_off_nominal_study_estimates_frequency_instead_of_reading_setup():
     result = m.off_nominal()
     assert result["summary"]["frequency_error_hz"] < 1e-5
     assert result["summary"]["fitted_phasor_relative_error"] < 1e-6
+
+
+def test_ct_burden_study_shows_increased_saturation_exposure():
+    result = m.ct_burden()
+    assert (
+        result["summary"]["high_burden_saturated_fraction"]
+        > result["summary"]["low_burden_saturated_fraction"]
+    )
