@@ -819,3 +819,62 @@ def current_zero(scale=1, seed=42):
             "This isolates current-zero timing; arc voltage, restrike and recovery voltage are excluded.",
         ],
     )
+
+
+def pickup_uncertainty(scale=1, seed=42):
+    from .core import stream
+    from .overcurrent import operating_time
+    from .results import curve, make
+    from .statistics import mean_interval, wilson
+
+    currents = np.maximum(0, stream(seed, "fault-current-population").normal(115, 15, 400 * scale))
+    times = operating_time(currents / 100, "very", 0.03)
+    observed = np.isfinite(times)
+    lower, upper = wilson(int(observed.sum()), len(currents))
+    mean_low, mean_high = mean_interval(times[observed], seed=seed)
+    sorted_current = np.sort(currents)
+    curve_times = operating_time(sorted_current / 100, "very", 0.03)
+    valid = np.isfinite(curve_times)
+    return make(
+        "pickup-uncertainty",
+        {
+            "assumed_mean_current_a": 115,
+            "assumed_std_a": 15,
+            "pickup_a": 100,
+            "time_multiplier": 0.03,
+            "trials": len(currents),
+            "seed": seed,
+        },
+        {
+            "sensitivity": float(observed.mean()),
+            "wilson_low": lower,
+            "wilson_high": upper,
+            "conditional_mean_delay_s": float(np.mean(times[observed])),
+            "conditional_mean_ci_low_s": mean_low,
+            "conditional_mean_ci_high_s": mean_high,
+            "missed_trials": int(np.sum(~observed)),
+        },
+        {
+            "current_a": sorted_current,
+            "time_s": np.where(valid, curve_times, 0),
+            "observed": valid,
+            "sample_current_a": currents,
+            "sample_delay_s": np.where(observed, times, 0),
+            "sample_observed": observed,
+        },
+        [
+            curve(
+                "Near-pickup timing diverges and sub-pickup trials remain unavailable",
+                "current_a",
+                [("time_s", "finite operating time", "observed")],
+                "Assumed RMS fault current (A)",
+                "Ideal steady-current operating time (s)",
+                yscale="log",
+            )
+        ],
+        assumptions=[
+            "Independent assumed normal trials, not measured grid statistics.",
+            "Ideal inverse-time formula without waveform or breaker delays.",
+            "Mean-delay bootstrap is conditional on operation; missed trials remain in the sensitivity denominator.",
+        ],
+    )

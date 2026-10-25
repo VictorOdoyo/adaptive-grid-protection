@@ -79,3 +79,14 @@ def test_adaptive_guard_study_waits_until_fault_pickup_clears():
 def test_current_zero_study_separates_mechanical_and_electrical_opening():
     result = m.current_zero()
     assert 0 <= result["summary"]["additional_arc_wait_s"] < 0.02
+
+
+def test_pickup_uncertainty_reports_misses_and_conditional_timing():
+    summary = m.pickup_uncertainty()["summary"]
+    assert 0 < summary["missed_trials"] < 100
+    assert summary["wilson_low"] < summary["sensitivity"] < summary["wilson_high"]
+    assert (
+        summary["conditional_mean_ci_low_s"]
+        < summary["conditional_mean_delay_s"]
+        < summary["conditional_mean_ci_high_s"]
+    )
