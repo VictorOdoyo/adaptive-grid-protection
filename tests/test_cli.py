@@ -40,3 +40,24 @@ def test_cli_data_capture_render_and_replay_preserve_original_source(tmp_path):
     with pytest.raises(SystemExit) as error:
         main(["verify", str(replayed)])
     assert error.value.code == 2
+
+
+def test_cli_imports_calibrated_csv_and_preserves_input_digest(tmp_path):
+    import hashlib
+
+    import numpy as np
+
+    from protectlab.core import abc
+    from protectlab.records import Record, write_csv
+    from protectlab.reporting import load_archive, verify_report
+    from protectlab.waveforms import synthesize
+
+    t = np.arange(400) / 3200
+    record = Record(t, synthesize(t, abc([0, 230, 0])), synthesize(t, abc([0, 20, 0])), np.ones(len(t), bool))
+    path = write_csv(record, tmp_path / "wave.csv")
+    assert main(["record-info", str(path)]) == 0
+    target = tmp_path / "report"
+    main(["record-replay", str(path), "--output", str(target)])
+    assert verify_report(target)
+    saved = load_archive(target / "fields.npz")
+    assert saved["parameters"]["input_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()

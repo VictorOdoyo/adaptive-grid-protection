@@ -33,6 +33,16 @@ def parser():
     replay.add_argument("--output", type=Path, required=True)
     verify = commands.add_parser("verify", help="verify report or catalog integrity")
     verify.add_argument("directory", type=Path)
+    info = commands.add_parser("record-info", help="audit primary-unit waveform CSV")
+    info.add_argument("path", type=Path)
+    info.add_argument("--nominal-hz", type=float, default=50.0)
+    recorded = commands.add_parser("record-replay", help="replay calibrated voltage and current CSV")
+    recorded.add_argument("path", type=Path)
+    recorded.add_argument("--nominal-hz", type=float, default=50.0)
+    recorded.add_argument("--pickup-a", type=float, default=100.0)
+    recorded.add_argument("--time-multiplier", type=float, default=0.03)
+    recorded.add_argument("--nondirectional", action="store_true")
+    recorded.add_argument("--output", type=Path, required=True)
     return root
 
 
@@ -81,6 +91,32 @@ def main(argv=None):
 
                 verify_report(args.directory)
                 print("Verified report")
+        elif args.command in ("record-info", "record-replay"):
+            from .records import audit, read_csv, report
+
+            record = read_csv(args.path, args.nominal_hz)
+            if args.command == "record-info":
+                print(json.dumps(audit(record), indent=2))
+            else:
+                import hashlib
+
+                from .reporting import provenance, stamp, write_report
+
+                settings = {
+                    "pickup_a": args.pickup_a,
+                    "time_multiplier": args.time_multiplier,
+                    "directional": not args.nondirectional,
+                }
+                config = {
+                    "command": "record-replay",
+                    "input_sha256": hashlib.sha256(args.path.read_bytes()).hexdigest(),
+                    "nominal_hz": args.nominal_hz,
+                    **settings,
+                }
+                frozen = provenance(config)
+                result = report(record, **settings)
+                result["parameters"]["input_sha256"] = config["input_sha256"]
+                print(write_report(stamp(result, config, frozen), args.output))
     except (ValueError, OSError, RuntimeError, KeyError) as error:
         root.error(str(error))
     return 0
