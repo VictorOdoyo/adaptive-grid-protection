@@ -61,7 +61,7 @@ class Receiver:
                 message["sender"] == self.sender
                 and type(message["sequence"]) is int
                 and message["sequence"] > self.sequence
-                and 0 <= age <= self.maximum_age
+                and -1e-12 <= age <= self.maximum_age + 1e-12
             )
         except (KeyError, TypeError):
             return False
@@ -72,7 +72,7 @@ class Receiver:
         return True
 
     def latest(self, now_s):
-        if self.message is None or not 0 <= now_s - self.message["sent_s"] <= self.maximum_age:
+        if self.message is None or not -1e-12 <= now_s - self.message["sent_s"] <= self.maximum_age + 1e-12:
             return None
         from copy import deepcopy
 

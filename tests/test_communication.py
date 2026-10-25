@@ -54,3 +54,11 @@ def test_transmitter_sequence_cannot_be_assigned_to_a_past_send_time():
     channel.send(1.0, {})
     with pytest.raises(ValueError, match="causal"):
         channel.send(0.5, {})
+
+
+def test_exact_freshness_boundary_is_inclusive_after_decimal_clock_subtraction():
+    receiver = m.Receiver(maximum_age_s=0.02)
+    message = {"sender": "remote", "sequence": 1, "sent_s": 0.112, "payload": {"permit": True}}
+    assert receiver.accept(message, 0.132)
+    assert receiver.latest(0.132) == {"permit": True}
+    assert receiver.latest(0.132001) is None
