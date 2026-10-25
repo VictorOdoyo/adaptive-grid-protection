@@ -94,6 +94,8 @@ def validate(result):
             x = np.asarray(arrays[plot["x"]])
             if x.ndim != 1 or x.size < 1 or np.iscomplexobj(x):
                 raise ValueError("one-dimensional curve coordinates required")
+            if plot.get("aspect", "auto") not in ("auto", "equal"):
+                raise ValueError("curve aspect must be auto or equal")
             limits = plot.get("ylim")
             if limits is not None:
                 limits = np.asarray(limits)

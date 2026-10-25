@@ -90,3 +90,8 @@ def test_pickup_uncertainty_reports_misses_and_conditional_timing():
         < summary["conditional_mean_delay_s"]
         < summary["conditional_mean_ci_high_s"]
     )
+
+
+def test_impedance_plane_preserves_geometric_circle_aspect():
+    result = m.distance_reach()
+    assert result["plots"][1]["aspect"] == "equal"

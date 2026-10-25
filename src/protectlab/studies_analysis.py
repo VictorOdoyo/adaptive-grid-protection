@@ -543,6 +543,14 @@ def distance_reach(scale=1, seed=42):
     mho_pick = mho(impedance, reach)
     quad_pick = polygon(impedance, vertices)
     circle = reach / 2 + abs(reach) / 2 * np.exp(1j * np.linspace(0, 2 * np.pi, 401))
+    impedance_plot = curve(
+        "Mho boundary in the impedance plane",
+        "circle_r",
+        [("circle_x", "mho boundary")],
+        "Resistance (ohm)",
+        "Reactance (ohm)",
+    )
+    impedance_plot["aspect"] = "equal"
     return make(
         "distance-resistive-reach",
         {
@@ -571,13 +579,7 @@ def distance_reach(scale=1, seed=42):
                 "Fault resistance (ohm)",
                 "Pickup = 1",
             ),
-            curve(
-                "Mho boundary in the impedance plane",
-                "circle_r",
-                [("circle_x", "mho boundary")],
-                "Resistance (ohm)",
-                "Reactance (ohm)",
-            ),
+            impedance_plot,
         ],
         assumptions=[
             "Radial single-infeed apparent impedance adds a real fault-resistance term.",

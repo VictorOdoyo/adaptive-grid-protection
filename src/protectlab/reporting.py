@@ -220,6 +220,8 @@ def plot_result(result, path):
             ax.set(xscale=plot["xscale"], yscale=plot["yscale"])
             if plot.get("ylim") is not None:
                 ax.set_ylim(plot["ylim"])
+            if "aspect" in plot:
+                ax.set_aspect(plot["aspect"])
             ax.grid(alpha=0.22)
             ax.legend(fontsize=8)
         else:
