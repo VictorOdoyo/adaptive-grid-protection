@@ -650,3 +650,73 @@ def fault_location(scale=1, seed=42):
             "Line shunt capacitance and dynamic traveling waves are excluded from this phasor location model.",
         ],
     )
+
+
+def pilot_latency(scale=1, seed=42):
+    from .communication import Channel, Receiver, permissive_trip
+    from .results import curve, make
+
+    latencies = np.linspace(0, 0.04, 41 * scale)
+    rows = []
+    for delay in latencies:
+        channel = Channel(float(delay), loss_probability=0.1, seed=seed)
+        receiver = Receiver(maximum_age_s=0.02)
+        tripped = None
+        for k in range(201):
+            t = k * 0.001
+            if t >= 0.11 and k % 4 == 0:
+                channel.send(t, {"permit": True})
+            for message in channel.receive(t):
+                receiver.accept(message, t)
+            if permissive_trip(t >= 0.1, t >= 0.105, receiver.latest(t)) and tripped is None:
+                tripped = t
+        rows.append(
+            {
+                "latency_s": float(delay),
+                "trip_time_s": tripped,
+                "sent": channel.sent,
+                "dropped": channel.dropped,
+            }
+        )
+    available = np.array([r["trip_time_s"] is not None for r in rows])
+    return make(
+        "pilot-channel-latency",
+        {
+            "maximum_message_age_s": 0.02,
+            "loss_probability": 0.1,
+            "heartbeat_s": 0.004,
+            "local_pickup_s": 0.105,
+            "remote_pickup_s": 0.11,
+            "seed": seed,
+        },
+        {"available_points": int(available.sum()), "unavailable_points": int((~available).sum())},
+        {
+            "latency_ms": latencies * 1e3,
+            "trip_delay_ms": [
+                0 if r["trip_time_s"] is None else (r["trip_time_s"] - 0.1) * 1e3 for r in rows
+            ],
+            "available": available,
+            "availability": available.astype(float),
+        },
+        [
+            curve(
+                "Permissive trip delay including freshness supervision",
+                "latency_ms",
+                [("trip_delay_ms", "available permissive trip", "available")],
+                "One-way channel latency (ms)",
+                "Delay from local fault stimulus (ms)",
+            ),
+            curve(
+                "Messages beyond the age limit cannot supply permission",
+                "latency_ms",
+                [("availability", "available = 1")],
+                "One-way channel latency (ms)",
+                "Binary availability",
+            ),
+        ],
+        {"delays": rows},
+        [
+            "Local and remote element pickups are declared binary stimuli for this channel-only benchmark.",
+            "No permission is inferred from silence, stale messages or missing packets.",
+        ],
+    )

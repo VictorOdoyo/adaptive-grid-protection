@@ -62,3 +62,9 @@ def test_two_ended_study_rejects_single_ended_infeed_bias():
     result = m.fault_location()
     assert result["summary"]["maximum_two_ended_error"] < 1e-12
     assert result["summary"]["maximum_single_ended_error"] > 0.01
+
+
+def test_pilot_latency_study_keeps_stale_permission_unavailable():
+    result = m.pilot_latency()
+    assert result["summary"]["unavailable_points"] > 10
+    assert result["summary"]["available_points"] > 10
