@@ -768,3 +768,54 @@ def adaptive_guard(scale=1, seed=42):
             "The certificate covers an explicit current envelope and is not a cryptographic signature.",
         ],
     )
+
+
+def current_zero(scale=1, seed=42):
+    from .results import curve, make
+    from .switchgear import ArcPole
+    from .waveforms import rl_fault
+
+    fs = 32000 * scale
+    t = np.arange(round(0.12 * fs) + 1) / fs
+    current = rl_fault(t, 0.5, 0.02, 230, angle_rad=0.4)
+    pole = ArcPole(parting_s=0.03, zero_tolerance_a=0.001)
+    closed = [
+        pole.update(float(when), float(value), trip=when >= 0.02)
+        for when, value in zip(t, current, strict=True)
+    ]
+    opened = t[np.flatnonzero(~np.asarray(closed))[0]]
+    return make(
+        "current-zero-interruption",
+        {
+            "trip_command_s": 0.02,
+            "mechanical_parting_s": 0.03,
+            "resistance_ohm": 0.5,
+            "inductance_h": 0.02,
+            "voltage_rms_v": 230,
+            "inception_angle_rad": 0.4,
+            "sample_hz": fs,
+            "seed": seed,
+        },
+        {"opening_time_s": float(opened), "additional_arc_wait_s": float(opened - 0.05)},
+        {"time_s": t, "current_a": current, "closed": np.asarray(closed, float)},
+        [
+            curve(
+                "Imposed prospective RL current",
+                "time_s",
+                [("current_a", "prospective current")],
+                "Time (s)",
+                "Instantaneous current (A)",
+            ),
+            curve(
+                "Current zero follows contact parting",
+                "time_s",
+                [("closed", "closed = 1")],
+                "Time (s)",
+                "Binary pole state",
+            ),
+        ],
+        assumptions=[
+            "The prospective waveform is imposed and not recalculated after opening.",
+            "This isolates current-zero timing; arc voltage, restrike and recovery voltage are excluded.",
+        ],
+    )

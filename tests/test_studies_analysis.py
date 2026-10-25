@@ -74,3 +74,8 @@ def test_adaptive_guard_study_waits_until_fault_pickup_clears():
     result = m.adaptive_guard()
     assert not result["summary"]["committed_during_fault"]
     assert result["summary"]["commit_time_s"] >= 0.22
+
+
+def test_current_zero_study_separates_mechanical_and_electrical_opening():
+    result = m.current_zero()
+    assert 0 <= result["summary"]["additional_arc_wait_s"] < 0.02
