@@ -14,6 +14,8 @@ class Branch:
     def __post_init__(self):
         from .core import finite
 
+        if type(self.closed) is not bool:
+            raise ValueError("branch closed state must be boolean")
         z = finite(self.z, ndim=2).copy()
         if z.shape != (3, 3) or np.linalg.matrix_rank(z) < 3 or not np.allclose(z, z.T):
             raise ValueError("reciprocal invertible 3x3 series impedance required")
@@ -78,7 +80,11 @@ def admittance(buses, branches, sources=(), shunts=None):
         y[b, b] += g
         y[a, b] -= g
         y[b, a] -= g
+    source_names = set()
     for source in sources:
+        if not source.name or source.name in source_names:
+            raise ValueError("unique nonempty source names required")
+        source_names.add(source.name)
         if source.bus not in indices:
             raise ValueError("source bus not found")
         s = indices[source.bus]

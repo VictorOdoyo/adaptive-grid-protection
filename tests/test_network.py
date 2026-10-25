@@ -116,3 +116,11 @@ def test_phase_constraint_solver_matches_independent_sequence_connections(kind):
     phase = m.currents(result, [], [source])["sources"]["g"]
     expected = m.sequence_reference(230, 3 + 8j, 1 + 3j, 1.2 + 3.5j, kind)["phase_a"]
     assert np.allclose(phase, expected)
+
+
+def test_duplicate_source_names_and_nonboolean_breakers_are_rejected():
+    source = m.balanced_source("g", "a", 230, 1j, 1j)
+    with pytest.raises(ValueError, match="source names"):
+        m.admittance(["a"], [], [source, source])
+    with pytest.raises(ValueError, match="boolean"):
+        m.Branch("l", "a", "b", np.eye(3), closed="open")
