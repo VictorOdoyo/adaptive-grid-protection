@@ -18,7 +18,10 @@ def curve(title, x, series, xlabel, ylabel, xscale="linear", yscale="linear", va
         "kind": "curve",
         "title": title,
         "x": x,
-        "series": [{"key": key, "label": label} for key, label in series],
+        "series": [
+            {"key": item[0], "label": item[1], **({"valid": item[2]} if len(item) > 2 else {})}
+            for item in series
+        ],
         "xlabel": xlabel,
         "ylabel": ylabel,
         "xscale": xscale,
@@ -103,7 +106,7 @@ def validate(result):
                 ):
                     raise ValueError("ordered finite real axis limits required")
             valid = np.ones(len(x), bool) if plot["valid"] is None else arrays[plot["valid"]]
-            if valid.dtype != bool or valid.shape != x.shape or not np.any(valid):
+            if valid.dtype != bool or valid.shape != x.shape:
                 raise ValueError("nonempty explicit boolean spectral validity mask required")
             for axis in ("xscale", "yscale"):
                 if plot[axis] not in ("linear", "log"):
@@ -111,10 +114,14 @@ def validate(result):
             if plot["xscale"] == "log" and np.any(x[valid] <= 0):
                 raise ValueError("positive logarithmic curve coordinates required")
             for series in plot["series"]:
+                series_valid = np.ones(len(x), bool) if "valid" not in series else arrays[series["valid"]]
+                if series_valid.dtype != bool or series_valid.shape != x.shape:
+                    raise ValueError("aligned boolean series validity required")
+                selected = valid & series_valid
                 y = np.asarray(arrays[series["key"]])
                 if y.shape != x.shape or np.iscomplexobj(y):
                     raise ValueError("curve ordinates must be real and aligned with x")
-                if plot["yscale"] == "log" and np.any(y[valid] <= 0):
+                if plot["yscale"] == "log" and np.any(y[selected] <= 0):
                     raise ValueError("logarithmic ordinates must be positive; record zeros explicitly")
         elif plot["kind"] == "image":
             field = arrays[plot["array"]]

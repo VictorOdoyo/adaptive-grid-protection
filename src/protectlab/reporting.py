@@ -203,11 +203,20 @@ def plot_result(result, path):
             selected = np.ones(len(x), bool) if plot["valid"] is None else arrays[plot["valid"]]
             for series in plot["series"]:
                 y = np.asarray(arrays[series["key"]], dtype=float)
-                shown = np.where(selected, y, np.nan)
+                series_valid = np.ones(len(x), bool) if "valid" not in series else arrays[series["valid"]]
+                usable = selected & series_valid
+                shown = np.where(usable, y, np.nan)
                 style = "o-" if len(x) <= 12 else "-"
                 if any(word in series["label"].lower() for word in ("exact", "analytic", "reference")):
                     style = "--"
-                ax.plot(x, shown, style, label=series["label"], linewidth=1.6, markersize=4)
+                ax.plot(
+                    x,
+                    shown,
+                    style,
+                    label=series["label"] + (" (unavailable)" if not np.any(usable) else ""),
+                    linewidth=1.6,
+                    markersize=4,
+                )
             ax.set(xscale=plot["xscale"], yscale=plot["yscale"])
             if plot.get("ylim") is not None:
                 ax.set_ylim(plot["ylim"])

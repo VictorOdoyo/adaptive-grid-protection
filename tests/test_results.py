@@ -44,3 +44,14 @@ def test_explicit_physical_axis_limits_are_preserved_and_validated():
     result["plots"][0]["ylim"] = [2, 1]
     with pytest.raises(ValueError, match="axis limits"):
         m.validate(result)
+
+
+def test_all_missing_measurement_series_retains_truth_and_settings_curves():
+    result = m.make(
+        "missing",
+        {},
+        {"valid_fraction": 0},
+        {"t": [0, 1], "measured": [0, 0], "truth": [10, 10], "valid": [False, False]},
+        [m.curve("coverage", "t", [("measured", "measured", "valid"), ("truth", "true")], "s", "A")],
+    )
+    assert result["plots"][0]["series"][0]["valid"] == "valid"

@@ -73,13 +73,12 @@ def evaluate(scenario, name, expected_open, description):
                 "Observed fundamental current and active pickup",
                 "time_s",
                 [
-                    ("primary_measured_a", "measured RMS"),
+                    ("primary_measured_a", "measured RMS", "primary_valid"),
                     ("primary_true_a", "true maximum phase RMS"),
                     ("pickup_a", "active pickup"),
                 ],
                 "Time (s)",
                 "Current (A)",
-                valid="primary_valid",
             ),
             curve(
                 "Integrated inverse-time travel",
@@ -186,4 +185,15 @@ def saturation(scale=1, seed=42):
         "ct-saturation",
         ["primary"],
         "A low illustrative CT flux knee deliberately stresses measured current; the model is not a CT accuracy class.",
+    )
+
+
+def clipping(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(instrumented=True, adc_scale_a=0.05, sample_hz=3200 * scale, seed=seed),
+        "adc-clipping",
+        ["primary"],
+        "The ADC rail is intentionally too small. Invalid windows are blocked and the missed operation is retained.",
     )

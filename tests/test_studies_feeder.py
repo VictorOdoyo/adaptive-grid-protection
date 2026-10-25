@@ -55,3 +55,10 @@ def test_ct_saturation_study_preserves_actual_undermeasurement():
     true = result["arrays"]["primary_true_a"][valid]
     measured = result["arrays"]["primary_measured_a"][valid]
     assert np.max(true - measured) > 100
+
+
+def test_clipped_fault_study_reports_failed_isolation_and_quality_flags():
+    result = m.clipping()
+    assert not result["summary"]["required_isolation"]
+    assert np.any(result["arrays"]["adc_clipped"])
+    assert result["summary"]["primary_measurement_valid_fraction"] < 0.5
