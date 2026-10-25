@@ -353,3 +353,52 @@ def ct_burden(scale=1, seed=42):
         },
         ["Piecewise-linear magnetization without hysteresis or a manufacturer CT accuracy-class claim."],
     )
+
+
+def coordination(scale=1, seed=42):
+    from .coordination import optimize
+    from .overcurrent import operating_time
+    from .results import curve, make
+
+    currents = np.array([[600, 500, 400], [900, 700, 550], [1200, 1000, 800]])
+    pairs = [(f, p, p + 1) for f in range(3) for p in range(2)]
+    optimized = optimize(currents, [100, 120, 150], pairs)
+    sweep = np.linspace(160, 1500, 201 * scale)
+    settings = optimized["multipliers"]
+    arrays = {"current_a": sweep}
+    for k, pickup in enumerate((100, 120, 150)):
+        arrays[f"time_{k}"] = operating_time(sweep / pickup, "very") * settings[k]
+    margins = [r["margin_s"] for r in optimized["audit"]["rows"]]
+    return make(
+        "coordination-optimization",
+        {
+            "fault_currents_a": currents,
+            "pickups_a": [100, 120, 150],
+            "grading_s": 0.2,
+            "breaker_s": 0.04,
+            "seed": seed,
+        },
+        {"minimum_margin_s": min(margins), "objective_sum_tms": optimized["objective"]},
+        arrays,
+        [
+            curve(
+                "Optimized relay time curves; constraints use each relay's local fault current",
+                "current_a",
+                [(f"time_{k}", f"relay {k + 1}") for k in range(3)],
+                "Local RMS current (A)",
+                "Relay operating time (s)",
+                "log",
+                "log",
+            )
+        ],
+        {
+            "settings": [
+                {"relay": k, "pickup_a": p, "time_multiplier": float(settings[k])}
+                for k, p in enumerate((100, 120, 150))
+            ],
+            "margins": optimized["audit"]["rows"],
+        },
+        [
+            "Curve separation at equal current is illustrative; grading is certified at the distinct local currents in the fault matrix."
+        ],
+    )

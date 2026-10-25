@@ -35,3 +35,7 @@ def test_ct_burden_study_shows_increased_saturation_exposure():
         result["summary"]["high_burden_saturated_fraction"]
         > result["summary"]["low_burden_saturated_fraction"]
     )
+
+
+def test_coordination_study_reports_audited_margin_not_only_optimizer_status():
+    assert m.coordination()["summary"]["minimum_margin_s"] >= 0.2 - 1e-9
