@@ -145,3 +145,19 @@ def replay(
         "valid": measured_i["valid"],
         "trip_time_s": None if not len(indices) else float(record.time_s[indices[0]]),
     }
+
+
+def align(left, right, tolerance_s=1e-9):
+    from .core import positive
+
+    tolerance = positive(tolerance_s, allow_zero=True)
+    if left.nominal_hz != right.nominal_hz:
+        raise ValueError("terminal nominal frequencies differ")
+    if left.time_s.shape != right.time_s.shape or np.max(abs(left.time_s - right.time_s)) > tolerance:
+        raise ValueError("terminal records are not synchronized; correct clock errors explicitly")
+    return {
+        "time_s": left.time_s.copy(),
+        "left_current_a": left.current_a.copy(),
+        "right_current_a": right.current_a.copy(),
+        "valid": left.valid & right.valid,
+    }

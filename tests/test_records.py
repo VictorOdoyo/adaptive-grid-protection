@@ -57,3 +57,12 @@ def test_imported_fault_replay_has_measured_detection_delay_and_invalid_quality_
     assert 0.1 < result["trip_time_s"] < 0.3
     bad = m.Record(t, voltage, current, np.zeros(len(t), bool))
     assert m.replay(bad)["trip_time_s"] is None
+
+
+def test_dual_terminal_alignment_rejects_hidden_clock_shift():
+    t = np.arange(100) / 3200
+    a = m.Record(t, np.ones((100, 3)), np.ones((100, 3)), np.ones(100, bool))
+    b = m.Record(t + 0.001, a.voltage_v, a.current_a, a.valid)
+    with pytest.raises(ValueError, match="synchronized"):
+        m.align(a, b)
+    assert np.all(m.align(a, a)["valid"])
