@@ -176,3 +176,14 @@ def instrumented(scale=1, seed=42):
         ["primary"],
         "Nonlinear CT, causal low-pass, 16-bit ADC and full-cycle estimation precede both relays.",
     )
+
+
+def saturation(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(instrumented=True, ct_knee_vs=0.025, dc_tau_s=0.06, sample_hz=3200 * scale, seed=seed),
+        "ct-saturation",
+        ["primary"],
+        "A low illustrative CT flux knee deliberately stresses measured current; the model is not a CT accuracy class.",
+    )

@@ -46,3 +46,12 @@ def test_instrumented_fault_records_ct_state_and_clears():
     assert result["summary"]["selective"]
     assert np.max(abs(result["arrays"]["ct_flux_vs"])) > 0
     assert not np.any(result["arrays"]["adc_clipped"])
+
+
+def test_ct_saturation_study_preserves_actual_undermeasurement():
+    result = m.saturation()
+    assert np.max(abs(result["arrays"]["ct_flux_vs"])) > 0.025
+    valid = result["arrays"]["primary_valid"]
+    true = result["arrays"]["primary_true_a"][valid]
+    measured = result["arrays"]["primary_measured_a"][valid]
+    assert np.max(true - measured) > 100
