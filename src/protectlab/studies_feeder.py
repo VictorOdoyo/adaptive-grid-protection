@@ -208,3 +208,14 @@ def breaker_failure(scale=1, seed=42):
         ["backup"],
         "The primary trip is latched but its breaker is stuck. Persistent measured current starts 50BF backup.",
     )
+
+
+def reverse_infeed(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(fault_bus="junction", inverter_current_a=1000, sample_hz=3200 * scale, seed=seed),
+        "directional-challenge",
+        ["backup"],
+        "High inverter export is an intentional stress case. Conventional memory torque may classify reverse fault current as forward.",
+    )

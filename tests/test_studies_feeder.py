@@ -69,3 +69,10 @@ def test_breaker_failure_study_records_backup_clearance_after_failed_primary():
     assert result["summary"]["selective"]
     assert any(e["event"] == "breaker_failure" for e in result["tables"]["events"])
     assert result["summary"]["final_junction_voltage_pu"] == 0
+
+
+def test_directional_challenge_reports_sympathetic_primary_opening():
+    result = m.reverse_infeed()
+    assert not result["summary"]["selective"]
+    assert result["summary"]["unnecessary_openings"] == 1
+    assert result["summary"]["required_isolation"]
