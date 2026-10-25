@@ -1,0 +1,4 @@
+device,event,time_s
+primary,trip,0.2240625
+backup,breaker_failure,0.3440625
+backup,open,0.3840625

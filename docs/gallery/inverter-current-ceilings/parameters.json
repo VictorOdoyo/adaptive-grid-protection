@@ -1,0 +1,7 @@
+{
+  "negative_gain": 0.8,
+  "negative_voltage_v": 23,
+  "phase_limit_a": 120,
+  "rated_current_a": 100,
+  "seed": 42
+}

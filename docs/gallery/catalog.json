@@ -1,0 +1,794 @@
+{
+  "experiments": [
+    {
+      "archive": "strong-source/fields.npz",
+      "case": "strong-source",
+      "configuration": {
+        "case": "strong-source",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "78493fa1bdab83674db278bb07489edb3d2b93f4ab21edbd671fd28c37dd5cdb",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "064928bd0a2c558984889ff4f128c65388eec1d7eb407720ed51920b5775b5f3",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": 0.14406249999999998,
+        "final_junction_voltage_pu": 1.0000000000000004,
+        "maximum_inverter_control_residual": 1.744382416291046e-14,
+        "maximum_network_residual": 4.3550314177960547e-16,
+        "maximum_primary_true_rms_a": 2114.878921924278,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "weak-source-static/fields.npz",
+      "case": "weak-source-static",
+      "configuration": {
+        "case": "weak-source-static",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "1a497fc14eefd37072f9768faed23adb94a051f83e7ec96aed3e4fc36574b0db",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "29e7c0af05fc5818afec7594307e227d7ecfcedf8ed0df707b4a91c54729067f",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": null,
+        "final_junction_voltage_pu": 0.057030010694591356,
+        "maximum_inverter_control_residual": 9.85878045867139e-15,
+        "maximum_network_residual": 1.1116831302945449e-14,
+        "maximum_primary_true_rms_a": 278.63154610657574,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": false,
+        "required_isolation": false,
+        "selective": false,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "weak-source-adaptive/fields.npz",
+      "case": "weak-source-adaptive",
+      "configuration": {
+        "case": "weak-source-adaptive",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "e897edafdff580135533a4a7e9fed14e234859889b47c4339f1d77da567831f5",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "9909a3135b74a04cb82602f1e43aa683ea4483d03e3c0f3772a5a23fe6ec125e",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": 0.159375,
+        "final_junction_voltage_pu": 1.0000000000000127,
+        "maximum_inverter_control_residual": 9.85878045867139e-15,
+        "maximum_network_residual": 1.1116831302945449e-14,
+        "maximum_primary_true_rms_a": 278.63154610657574,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "earth-fault-adaptive/fields.npz",
+      "case": "earth-fault-adaptive",
+      "configuration": {
+        "case": "earth-fault-adaptive",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "7106fc83cccc52c5cb1367a1d410c32a52d49d36189dfef9ac719f0a6e046a2b",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "acd9738d1eb6a9e628dec834252103b31c4157791a0d3282bb95c216bd934a7a",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": 0.309375,
+        "final_junction_voltage_pu": 1.0000000000000127,
+        "maximum_inverter_control_residual": 9.85878045867139e-15,
+        "maximum_network_residual": 1.3794527548481215e-14,
+        "maximum_primary_true_rms_a": 164.5042518722731,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "phase-fault-adaptive/fields.npz",
+      "case": "phase-fault-adaptive",
+      "configuration": {
+        "case": "phase-fault-adaptive",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "4177b6ca2419efd04c2b542e5a67f44169a37061ef46ae578ace73c8c1b12b4e",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "3ac1d1f2358fc89dcb958230994c229c33d79f7eb9f79c3463b65381a28e6e0d",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": 0.18562499999999998,
+        "final_junction_voltage_pu": 1.0000000000000127,
+        "maximum_inverter_control_residual": 9.85878045867139e-15,
+        "maximum_network_residual": 1.1116831302945449e-14,
+        "maximum_primary_true_rms_a": 243.33147593854795,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "instrumented-fault/fields.npz",
+      "case": "instrumented-fault",
+      "configuration": {
+        "case": "instrumented-fault",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "6ddcebc08f86a25bf6fdf757d9c23c36a25f97e41590362f84f241900c0901ce",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "2008fe09e8c06236e190d32b6ffa952d0b1287f9c7495dc15d70c051c5f7c7e7",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": 0.1403125,
+        "final_junction_voltage_pu": 1.0000000000000004,
+        "maximum_inverter_control_residual": 1.744382416291046e-14,
+        "maximum_network_residual": 4.3550314177960547e-16,
+        "maximum_primary_true_rms_a": 2114.878921924278,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "ct-saturation/fields.npz",
+      "case": "ct-saturation",
+      "configuration": {
+        "case": "ct-saturation",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "dcd54233ce8e646d965a4a3693600fcf4e907057852f56d54fe667657a0004b2",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "4f7df628cd272e7184abc8cc9cb80c0c4e9bbcb6cafb291098799f31ae94e191",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": 0.1671875,
+        "final_junction_voltage_pu": 1.0000000000000004,
+        "maximum_inverter_control_residual": 1.744382416291046e-14,
+        "maximum_network_residual": 4.3550314177960547e-16,
+        "maximum_primary_true_rms_a": 2114.878921924278,
+        "primary_measurement_valid_fraction": 0.9441624365482234,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "adc-clipping/fields.npz",
+      "case": "adc-clipping",
+      "configuration": {
+        "case": "adc-clipping",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "b3d36fb2317324e5b9c030a1445ce819c5745356818089000c864855a19cf0ab",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "4876f52a287fafb3673c5532bcff3b26dffe6b7519f3bd2d05f34ba0b86b0fa6",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": null,
+        "final_junction_voltage_pu": 0.44504448292599574,
+        "maximum_inverter_control_residual": 1.744382416291046e-14,
+        "maximum_network_residual": 4.239062418015253e-16,
+        "maximum_primary_true_rms_a": 2114.878921924278,
+        "primary_measurement_valid_fraction": 0.0,
+        "primary_tripped": false,
+        "required_isolation": false,
+        "selective": false,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "breaker-failure/fields.npz",
+      "case": "breaker-failure",
+      "configuration": {
+        "case": "breaker-failure",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "ea5d832139560f374d84326dec8d6612a61c44ca2efcd3c864bfb4f3d8539527",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "c4438bb3cc34d5f1d5d987dec412256dcb817a43025bb868179fc72458ebeaad",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": 0.2640625,
+        "final_junction_voltage_pu": 0.0,
+        "maximum_inverter_control_residual": 1.744382416291046e-14,
+        "maximum_network_residual": 4.239062418015253e-16,
+        "maximum_primary_true_rms_a": 2114.878921924278,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "directional-challenge/fields.npz",
+      "case": "directional-challenge",
+      "configuration": {
+        "case": "directional-challenge",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "e69260c63a615bc43a683d3600d7d3cb6d743a56d7c4188ebcdcd77868e5bff2",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "5434e0545fdef1a414f37d4da7c4c72b0e5a328569fca71ae69cb3f9d0d667e1",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": true,
+        "clearing_delay_s": 0.2715625,
+        "final_junction_voltage_pu": 0.0,
+        "maximum_inverter_control_residual": 2.2737367544323206e-16,
+        "maximum_network_residual": 3.708732144543166e-16,
+        "maximum_primary_true_rms_a": 1200.011743857022,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": true,
+        "required_isolation": true,
+        "selective": false,
+        "unnecessary_openings": 1
+      }
+    },
+    {
+      "archive": "healthy-export/fields.npz",
+      "case": "healthy-export",
+      "configuration": {
+        "case": "healthy-export",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "cc2783319435a7576049c317bfb9a809494aa30b4722f80216fcf4a5a62450a6",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "94b778d66e226995108e9fb1a7faa13a0293bcb088eeefc32065810f5a3a123e",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": null,
+        "final_junction_voltage_pu": 1.0133829794638978,
+        "maximum_inverter_control_residual": 1.8947806286936006e-16,
+        "maximum_network_residual": 8.26391721459944e-16,
+        "maximum_primary_true_rms_a": 218.27392128466477,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": false,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "temporary-fault/fields.npz",
+      "case": "temporary-fault",
+      "configuration": {
+        "case": "temporary-fault",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "d38c5cf5c5ba0befeee9ae6b8f7a47b8c9bf42113fb9e0402ac215d0007d3845",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "3e129c004a2b5fc3e71bd21f6a1d17a3cbb1f5202fcc1df5e56781d5921584e8",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "backup_tripped": false,
+        "clearing_delay_s": null,
+        "final_junction_voltage_pu": 1.0014501629562444,
+        "maximum_inverter_control_residual": 1.744382416291046e-14,
+        "maximum_network_residual": 4.239062418015253e-16,
+        "maximum_primary_true_rms_a": 2114.878921924278,
+        "primary_measurement_valid_fraction": 0.975400234283483,
+        "primary_tripped": false,
+        "required_isolation": true,
+        "selective": true,
+        "unnecessary_openings": 0
+      }
+    },
+    {
+      "archive": "fault-reference-benchmarks/fields.npz",
+      "case": "fault-reference-benchmarks",
+      "configuration": {
+        "case": "fault-reference-benchmarks",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "03d267552940f6f4c933ca39c72800ba94030f611ca928db3c45259b14c47706",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "13b0e38190a5449546ac9a92c2a6da9087b9cae6a6174717dfc8a0fcc5c3e681",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "maximum_relative_error": 4.643914990329232e-16
+      }
+    },
+    {
+      "archive": "inverter-current-ceilings/fields.npz",
+      "case": "inverter-current-ceilings",
+      "configuration": {
+        "case": "inverter-current-ceilings",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "89de5a316e97ca0b42217102f0f0e61c92814b56dd9889fb600fbf10636ec9c4",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "fcdece978005ab14e14664adb1e2f92834555dca907d7c8c5ce8310947763bb8",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "limit_excess_a": 1.4210854715202004e-14,
+        "maximum_phase_current_a": 120.00000000000001
+      }
+    },
+    {
+      "archive": "negative-sequence-observability/fields.npz",
+      "case": "negative-sequence-observability",
+      "configuration": {
+        "case": "negative-sequence-observability",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "d6defc8f05837e89c9d995ca2bfd4227702b4d4c89d5d440b79d4d8e893759fb",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "f4e20cf814a8a602ee9a4d335364b1fc9fc2324f10b6d4d5e1f10d0d04570ab3",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "full_gain_current_a": 9.268060050201571,
+        "zero_gain_observable": false
+      }
+    },
+    {
+      "archive": "dc-offset-rejection/fields.npz",
+      "case": "dc-offset-rejection",
+      "configuration": {
+        "case": "dc-offset-rejection",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "20afeccc5622f3f01280d594a680e7ee11dfb47f4c679a8047d42de32c033f1c",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "8cd2f57d4efa1fab9a27fa328cde9c47c0d938962cc9ce1b4ca16c7a84e8838a",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "maximum_valid_mimic_error": 7.252325280174389e-15,
+        "maximum_valid_raw_error": 0.046132516958457916
+      }
+    },
+    {
+      "archive": "off-nominal-estimation/fields.npz",
+      "case": "off-nominal-estimation",
+      "configuration": {
+        "case": "off-nominal-estimation",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "c21493007bc4fa04f262f43a2ac15aa83d42e524cea84f4433df6e2518782288",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "9d2b8968dd6fdb767c6a64b058cb3878e90eb7d905c170430cebf31c8820e0b2",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "estimated_frequency_hz": 48.70000033348004,
+        "fitted_phasor_relative_error": 1.2573503930975404e-07,
+        "frequency_error_hz": 3.3348003825039996e-07
+      }
+    },
+    {
+      "archive": "ct-burden-sensitivity/fields.npz",
+      "case": "ct-burden-sensitivity",
+      "configuration": {
+        "case": "ct-burden-sensitivity",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "2d65d95bf7498f6aeb4b3e64d65fa661752b47d7b061bdc32bc7c2fda4e097e9",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "4d0abf48dad5356d3625556a14d2e525f8d0ce139c8e0479202af6ee6327e1a5",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "high_burden_saturated_fraction": 0.7892682926829269,
+        "low_burden_saturated_fraction": 0.0
+      }
+    },
+    {
+      "archive": "coordination-optimization/fields.npz",
+      "case": "coordination-optimization",
+      "configuration": {
+        "case": "coordination-optimization",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "fac76896fa24d40f43b1dd3fc147754a22c6d93a60901bfb118e980a607c8573",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "10b77c0d6b42ba57393647c02c32b2888bfa3366ea9f80ada62504053b1c4598",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "minimum_margin_s": 0.19999999999999993,
+        "objective_sum_tms": 0.32565656565656564
+      }
+    },
+    {
+      "archive": "robust-coordination/fields.npz",
+      "case": "robust-coordination",
+      "configuration": {
+        "case": "robust-coordination",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "d2f25eca5568e97714bf44e548416ba1adb67007c9a5494925b193a6f321884b",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "81d250860cd149b16f787c229bc23f7ac4a6c201c905a8d60b5a1bddbb93833d",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "nominal_settings_worst_margin_s": 0.13088167138537862,
+        "robust_settings_worst_margin_s": 0.20000000000000004
+      }
+    },
+    {
+      "archive": "differential-security/fields.npz",
+      "case": "differential-security",
+      "configuration": {
+        "case": "differential-security",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "a9be6f43185e166a078c377574f22c3968cd8b18f08512bb2f11edb4f15bfefe",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "27f87b2963ad697f510596d6c6ea2ad465d15ab481aa345a519f2f3cb0ccb574",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "external_false_pickups": 0,
+        "harmonic_block_threshold": 0.15,
+        "internal_pickups": 200
+      }
+    },
+    {
+      "archive": "distance-resistive-reach/fields.npz",
+      "case": "distance-resistive-reach",
+      "configuration": {
+        "case": "distance-resistive-reach",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "b866dd20a84164bfc738cc015ca4627a0056cb746512d23d3da654467df30540",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "c2da1a7143a983795a1a0d7242bbd7a10685d03625ed9f484e144207e79a24f3",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "mho_detected_points": 36,
+        "quadrilateral_detected_points": 146
+      }
+    },
+    {
+      "archive": "fault-location-infeed/fields.npz",
+      "case": "fault-location-infeed",
+      "configuration": {
+        "case": "fault-location-infeed",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "34c995c354cdc8cb7c85a7f9863e1d1fbd26814da2f1ee22b0550c6e0970d508",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "1e9ca1220a9f19fc6163a757273c75be3a1f04a0e6f275cadbd158de5ff425fb",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "maximum_single_ended_error": 0.275523717215563,
+        "maximum_two_ended_error": 2.220446049250313e-16
+      }
+    },
+    {
+      "archive": "pilot-channel-latency/fields.npz",
+      "case": "pilot-channel-latency",
+      "configuration": {
+        "case": "pilot-channel-latency",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "276c7a8041669625f00542bbd8ad15e49963f04433fda54cb281d9447b3ab23a",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "f72cc3f09978f1dfc1914fe03f4103da056062d5a05eb1beaa59d7e777ce93b3",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "available_points": 21,
+        "unavailable_points": 20
+      }
+    },
+    {
+      "archive": "adaptive-transition-guards/fields.npz",
+      "case": "adaptive-transition-guards",
+      "configuration": {
+        "case": "adaptive-transition-guards",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "db26737db128bd46b011a6655e0d035e1255fd0d858ca5fb4ee39860321cb697",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "4c4302a47bc1d93d21704b8c3b9e99a0d3aced52f6b1e263fd3411f5add699dc",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "commit_time_s": 0.22,
+        "committed_during_fault": false
+      }
+    },
+    {
+      "archive": "current-zero-interruption/fields.npz",
+      "case": "current-zero-interruption",
+      "configuration": {
+        "case": "current-zero-interruption",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "a566b74a82f93837ddd58a84067525c7ae2fb40738492cb6dbb64773a301cbfe",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "ca58ce3d480a5329c560c6f116de8b2ddeb7e617cb3952de6eb83c4d86822872",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "additional_arc_wait_s": 0.008812499999999994,
+        "opening_time_s": 0.0588125
+      }
+    },
+    {
+      "archive": "pickup-uncertainty/fields.npz",
+      "case": "pickup-uncertainty",
+      "configuration": {
+        "case": "pickup-uncertainty",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "adeed338026f124be175526617e20f0bc6cd5198c5e4d80403672dbcb5ae8956",
+        "git_dirty": false,
+        "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "75eb4590db9989dff0e47c410c71f02ec4bce96b5f8a9a8b910dedd78f520a5e",
+        "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "conditional_mean_ci_high_s": 10.698178332487402,
+        "conditional_mean_ci_low_s": 4.305429701067421,
+        "conditional_mean_delay_s": 6.838107693768837,
+        "missed_trials": 59,
+        "sensitivity": 0.8525,
+        "wilson_high": 0.8838939266416067,
+        "wilson_low": 0.8143999058527144
+      }
+    }
+  ],
+  "schema_version": 1
+}

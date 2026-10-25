@@ -1,0 +1,4 @@
+metric,value
+external_false_pickups,0
+harmonic_block_threshold,0.15
+internal_pickups,200

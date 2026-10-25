@@ -1,0 +1,3 @@
+event,group,time_s
+proposed,weak,0.1
+committed,weak,0.22

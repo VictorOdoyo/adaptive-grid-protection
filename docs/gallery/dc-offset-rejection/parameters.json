@@ -1,0 +1,9 @@
+{
+  "frequency_hz": 50,
+  "inception_angle_rad": 0.2,
+  "inductance_h": 0.03,
+  "resistance_ohm": 1,
+  "sample_hz": 3200,
+  "seed": 42,
+  "voltage_rms_v": 230
+}

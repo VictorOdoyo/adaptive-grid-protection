@@ -1,0 +1,7 @@
+{
+  "minimum_operating_current_a": 1,
+  "negative_angle_rad": 0.4,
+  "negative_voltage_v": 23,
+  "positive_voltage_v": 115,
+  "seed": 42
+}

@@ -1,0 +1,5 @@
+device,event,time_s
+primary,trip,0.330625
+backup,trip,0.3515625
+primary,open,0.370625
+backup,open,0.3915625

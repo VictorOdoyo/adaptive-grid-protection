@@ -1,0 +1,10 @@
+{
+  "inception_angle_rad": 0.4,
+  "inductance_h": 0.02,
+  "mechanical_parting_s": 0.03,
+  "resistance_ohm": 0.5,
+  "sample_hz": 32000,
+  "seed": 42,
+  "trip_command_s": 0.02,
+  "voltage_rms_v": 230
+}

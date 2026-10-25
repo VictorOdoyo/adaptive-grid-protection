@@ -1,0 +1,13 @@
+{
+  "fault_resistance_ohm": 5,
+  "line_z0_ohm": [
+    3,
+    9
+  ],
+  "line_z1_ohm": [
+    1,
+    3
+  ],
+  "remote_source_angle_rad": 0.08,
+  "seed": 42
+}

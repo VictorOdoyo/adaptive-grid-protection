@@ -1,0 +1,12 @@
+{
+  "configuration_sha256": "ea5d832139560f374d84326dec8d6612a61c44ca2efcd3c864bfb4f3d8539527",
+  "git_dirty": false,
+  "git_revision": "b6841e1232dcac6db840a727ea4b1e98340b98a7",
+  "matplotlib": "3.11.2",
+  "numpy": "2.5.4",
+  "package_version": "0.1.0",
+  "parameters_sha256": "c4438bb3cc34d5f1d5d987dec412256dcb817a43025bb868179fc72458ebeaad",
+  "phasor_convention": "RMS cosine phasors exp(+i omega t); terminal current into protected line; SI units",
+  "python": "3.13.15",
+  "scipy": "1.18.1"
+}

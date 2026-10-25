@@ -1,0 +1,8 @@
+{
+  "assumed_mean_current_a": 115,
+  "assumed_std_a": 15,
+  "pickup_a": 100,
+  "seed": 42,
+  "time_multiplier": 0.03,
+  "trials": 400
+}

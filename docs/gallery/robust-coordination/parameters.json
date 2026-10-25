@@ -1,0 +1,21 @@
+{
+  "grading_s": 0.2,
+  "nominal_currents_a": [
+    [
+      500.0,
+      450.0
+    ],
+    [
+      700.0,
+      600.0
+    ]
+  ],
+  "pickups_a": [
+    100,
+    100
+  ],
+  "relative_std": 0.12,
+  "relay_current_correlation": 0.6,
+  "sample_count": 40,
+  "seed": 42
+}

@@ -1,0 +1,7 @@
+backup,coordinated,fault,margin_s,observable,primary
+1,True,0,0.5186315789473682,True,0
+2,True,0,0.6591866028708137,True,1
+1,True,1,0.32762931034482756,True,0
+2,True,1,0.37850705329153606,True,1
+1,True,2,0.20000000000000004,True,0
+2,True,2,0.19999999999999993,True,1

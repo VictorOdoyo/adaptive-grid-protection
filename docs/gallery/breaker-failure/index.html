@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>breaker-failure | Adaptive Grid Protection</title>
+<style>body{font:16px system-ui;max-width:1300px;margin:3rem auto;padding:0 1rem;color:#172033}
+img{width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{padding:.55rem;border-bottom:1px solid #dce1ea;text-align:left}
+code{overflow-wrap:anywhere}a{color:#164ac4}</style>
+<h1>breaker-failure</h1><p>Reproducible sampled grid protection. Units and field components are printed on the
+scientific axes. RMS phasors use exp(+i omega t); terminal currents point into the protected line.</p>
+<p><a href="fields.npz">Sealed numeric archive</a> | <a href="summary.csv">Summary CSV</a> |
+<a href="parameters.json">Physical parameters</a> | <a href="configuration.json">Run request</a> |
+<a href="provenance.json">Source and environment</a></p>
+<img src="figure.png" alt="Scientific curves and electromagnetic field maps for breaker-failure">
+<table><tr><th>backup_tripped</th><td>False</td></tr><tr><th>clearing_delay_s</th><td>0.2640625</td></tr><tr><th>final_junction_voltage_pu</th><td>0.0</td></tr><tr><th>maximum_inverter_control_residual</th><td>1.744382416291046e-14</td></tr><tr><th>maximum_network_residual</th><td>4.239062418015253e-16</td></tr><tr><th>maximum_primary_true_rms_a</th><td>2114.878921924278</td></tr><tr><th>primary_measurement_valid_fraction</th><td>0.975400234283483</td></tr><tr><th>primary_tripped</th><td>True</td></tr><tr><th>required_isolation</th><td>True</td></tr><tr><th>selective</th><td>True</td></tr><tr><th>unnecessary_openings</th><td>0</td></tr></table><h2>Data tables</h2><ul><li><a href="table_events.csv">events CSV</a></li></ul>
+<h2>Assumptions and interpretation</h2><ul><li>The primary trip is latched but its breaker is stuck. Persistent measured current starts 50BF backup.</li><li>This is a quasi-steady phase-network and sampled-waveform feedback model, not a full switching EMT solver.</li><li>GFL inverter islands without a voltage-forming reference are deenergized after isolation.</li><li>RMS phasors use a fixed cosine reference. Relay decisions use measured signals, not fault truth.</li><li>The supplied expected breaker set is used only to score the completed replay.</li><li>The CT is a piecewise-linear excitation model without hysteresis; DC offsets are synthesized per fault segment.</li></ul>
+<p>These are simulations, not hardware measurements. Network-model, measurement, timing and statistical
+uncertainty require distinct convergence checks. Singular or unilluminated data use explicit masks.</p>
+<p>Source revision: <code>b6841e1232dcac6db840a727ea4b1e98340b98a7</code>.
+Dirty checkout: <code>False</code>.
+Configuration SHA-256: <code>ea5d832139560f374d84326dec8d6612a61c44ca2efcd3c864bfb4f3d8539527</code>.</p>
+<p>Replay preserves original source and parameter provenance. SHA-256 manifests detect changed bytes;
+they are unsigned integrity records, not certificates of physical validity.</p></html>

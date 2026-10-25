@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>pickup-uncertainty | Adaptive Grid Protection</title>
+<style>body{font:16px system-ui;max-width:1300px;margin:3rem auto;padding:0 1rem;color:#172033}
+img{width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{padding:.55rem;border-bottom:1px solid #dce1ea;text-align:left}
+code{overflow-wrap:anywhere}a{color:#164ac4}</style>
+<h1>pickup-uncertainty</h1><p>Reproducible sampled grid protection. Units and field components are printed on the
+scientific axes. RMS phasors use exp(+i omega t); terminal currents point into the protected line.</p>
+<p><a href="fields.npz">Sealed numeric archive</a> | <a href="summary.csv">Summary CSV</a> |
+<a href="parameters.json">Physical parameters</a> | <a href="configuration.json">Run request</a> |
+<a href="provenance.json">Source and environment</a></p>
+<img src="figure.png" alt="Scientific curves and electromagnetic field maps for pickup-uncertainty">
+<table><tr><th>conditional_mean_ci_high_s</th><td>10.698178332487402</td></tr><tr><th>conditional_mean_ci_low_s</th><td>4.305429701067421</td></tr><tr><th>conditional_mean_delay_s</th><td>6.838107693768837</td></tr><tr><th>missed_trials</th><td>59</td></tr><tr><th>sensitivity</th><td>0.8525</td></tr><tr><th>wilson_high</th><td>0.8838939266416067</td></tr><tr><th>wilson_low</th><td>0.8143999058527144</td></tr></table><h2>Data tables</h2><ul></ul>
+<h2>Assumptions and interpretation</h2><ul><li>Independent assumed normal trials, not measured grid statistics.</li><li>Ideal inverse-time formula without waveform or breaker delays.</li><li>Mean-delay bootstrap is conditional on operation; missed trials remain in the sensitivity denominator.</li></ul>
+<p>These are simulations, not hardware measurements. Network-model, measurement, timing and statistical
+uncertainty require distinct convergence checks. Singular or unilluminated data use explicit masks.</p>
+<p>Source revision: <code>b6841e1232dcac6db840a727ea4b1e98340b98a7</code>.
+Dirty checkout: <code>False</code>.
+Configuration SHA-256: <code>adeed338026f124be175526617e20f0bc6cd5198c5e4d80403672dbcb5ae8956</code>.</p>
+<p>Replay preserves original source and parameter provenance. SHA-256 manifests detect changed bytes;
+they are unsigned integrity records, not certificates of physical validity.</p></html>

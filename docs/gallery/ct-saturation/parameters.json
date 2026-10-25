@@ -1,0 +1,84 @@
+{
+  "adaptive": false,
+  "adaptive_pickups_a": [
+    80,
+    100
+  ],
+  "adc_bits": 16,
+  "adc_scale_a": 20.0,
+  "analog_cutoff_hz": 800.0,
+  "analog_filter_order": 2,
+  "breaker_failure_delay_s": 0.12,
+  "certified_groups": [],
+  "ct_burden_ohm": 1.0,
+  "ct_knee_vs": 0.025,
+  "ct_magnetizing_h": 20.0,
+  "ct_ratio": 200.0,
+  "ct_saturated_h": 0.02,
+  "dc_tau_s": 0.06,
+  "directional": true,
+  "directional_mta_rad": 1.2490457723982544,
+  "duration_s": 0.8,
+  "expected_open": [
+    "primary"
+  ],
+  "fault_bus": "load",
+  "fault_kind": "abcg",
+  "frequency_hz": 50.0,
+  "grading_s": 0.2,
+  "inception_s": 0.12,
+  "instrumented": true,
+  "inverse_dropout": 0.95,
+  "inverse_reset_s": 0.1,
+  "inverter_current_a": 50.0,
+  "inverter_limit_pu": 1.2,
+  "line_positive_ohm": [
+    [
+      0.2,
+      0.6
+    ],
+    [
+      0.4,
+      1.2
+    ]
+  ],
+  "line_voltage_v": 11000,
+  "line_zero_ohm": [
+    [
+      0.5,
+      1.5
+    ],
+    [
+      1.2,
+      3.6
+    ]
+  ],
+  "load_resistance_ohm": 300,
+  "memory_hold_s": 0.6,
+  "memory_minimum_v": 1000.0,
+  "negative_gain": 0.0,
+  "noise_a": 0.0,
+  "opening_s": 0.04,
+  "primary_stuck": false,
+  "removal_s": null,
+  "resistance_ohm": 0.2,
+  "sample_hz": 3200,
+  "seed": 42,
+  "source_base_z0_ohm": [
+    0.5,
+    3.0
+  ],
+  "source_base_z1_ohm": [
+    0.3,
+    1.0
+  ],
+  "source_factor": 1.0,
+  "static_pickups_a": [
+    400,
+    450
+  ],
+  "static_time_multipliers": [
+    0.03,
+    0.12
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "actual_frequency_hz": 48.7,
+  "dc_offset_a": 3,
+  "fit_bounds_hz": [
+    45,
+    55
+  ],
+  "nominal_frequency_hz": 50,
+  "sample_hz": 3200,
+  "seed": 42
+}

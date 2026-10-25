@@ -1,0 +1,12 @@
+metric,value
+backup_tripped,False
+clearing_delay_s,0.309375
+final_junction_voltage_pu,1.0000000000000127
+maximum_inverter_control_residual,9.85878045867139e-15
+maximum_network_residual,1.3794527548481215e-14
+maximum_primary_true_rms_a,164.5042518722731
+primary_measurement_valid_fraction,0.975400234283483
+primary_tripped,True
+required_isolation,True
+selective,True
+unnecessary_openings,0

@@ -1,0 +1,8 @@
+metric,value
+conditional_mean_ci_high_s,10.698178332487402
+conditional_mean_ci_low_s,4.305429701067421
+conditional_mean_delay_s,6.838107693768837
+missed_trials,59
+sensitivity,0.8525
+wilson_high,0.8838939266416067
+wilson_low,0.8143999058527144

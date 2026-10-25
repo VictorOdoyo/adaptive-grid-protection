@@ -1,0 +1,27 @@
+{
+  "fault_fraction": 0.65,
+  "line_ohm": [
+    2,
+    8
+  ],
+  "quadrilateral_vertices": [
+    [
+      -1.0,
+      0.0
+    ],
+    [
+      10.0,
+      0.0
+    ],
+    [
+      10.0,
+      6.4
+    ],
+    [
+      -1.0,
+      6.4
+    ]
+  ],
+  "seed": 42,
+  "zone_fraction": 0.8
+}

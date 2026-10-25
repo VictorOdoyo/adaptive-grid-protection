@@ -1,0 +1,8 @@
+{
+  "heartbeat_s": 0.004,
+  "local_pickup_s": 0.105,
+  "loss_probability": 0.1,
+  "maximum_message_age_s": 0.02,
+  "remote_pickup_s": 0.11,
+  "seed": 42
+}

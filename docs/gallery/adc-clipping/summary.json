@@ -1,0 +1,13 @@
+{
+  "backup_tripped": false,
+  "clearing_delay_s": null,
+  "final_junction_voltage_pu": 0.44504448292599574,
+  "maximum_inverter_control_residual": 1.744382416291046e-14,
+  "maximum_network_residual": 4.239062418015253e-16,
+  "maximum_primary_true_rms_a": 2114.878921924278,
+  "primary_measurement_valid_fraction": 0.0,
+  "primary_tripped": false,
+  "required_isolation": false,
+  "selective": false,
+  "unnecessary_openings": 0
+}

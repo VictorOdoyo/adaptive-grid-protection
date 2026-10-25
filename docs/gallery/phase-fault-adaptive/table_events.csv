@@ -1,0 +1,4 @@
+device,event,time_s
+settings,adaptive_commit,0.03
+primary,trip,0.265625
+primary,open,0.305625

@@ -1,0 +1,9 @@
+{
+  "breakpoint_a": 200,
+  "external_ratio_error": 0.1,
+  "internal_remote_fraction": 0.8,
+  "pickup_a": 10,
+  "seed": 42,
+  "slope_high": 0.6,
+  "slope_low": 0.2
+}
