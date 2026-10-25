@@ -51,3 +51,8 @@ def test_differential_security_study_avoids_external_ratio_error_pickups():
     result = m.differential_security()
     assert result["summary"]["external_false_pickups"] == 0
     assert result["summary"]["internal_pickups"] > 100
+
+
+def test_quadrilateral_study_exposes_mho_resistive_underreach():
+    result = m.distance_reach()
+    assert result["summary"]["quadrilateral_detected_points"] > result["summary"]["mho_detected_points"]

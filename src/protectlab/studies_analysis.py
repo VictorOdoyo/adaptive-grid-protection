@@ -525,3 +525,58 @@ def differential_security(scale=1, seed=42):
             "Current polarity at both terminals points into the protected zone.",
         ],
     )
+
+
+def distance_reach(scale=1, seed=42):
+    from .distance import mho, polygon
+    from .results import curve, make
+
+    resistance = np.linspace(0, 12, 201 * scale)
+    line = 2 + 8j
+    impedance = 0.65 * line + resistance
+    reach = 0.8 * line
+    vertices = [-1 + 0j, 10 + 0j, 10 + 6.4j, -1 + 6.4j]
+    mho_pick = mho(impedance, reach)
+    quad_pick = polygon(impedance, vertices)
+    circle = reach / 2 + abs(reach) / 2 * np.exp(1j * np.linspace(0, 2 * np.pi, 401))
+    return make(
+        "distance-resistive-reach",
+        {
+            "line_ohm": [2, 8],
+            "fault_fraction": 0.65,
+            "zone_fraction": 0.8,
+            "quadrilateral_vertices": [[z.real, z.imag] for z in vertices],
+            "seed": seed,
+        },
+        {"mho_detected_points": int(mho_pick.sum()), "quadrilateral_detected_points": int(quad_pick.sum())},
+        {
+            "resistance_ohm": resistance,
+            "mho": mho_pick.astype(float),
+            "quadrilateral": quad_pick.astype(float),
+            "impedance_ohm": impedance,
+            "circle_r": circle.real,
+            "circle_x": circle.imag,
+            "fault_r": impedance.real,
+            "fault_x": impedance.imag,
+        },
+        [
+            curve(
+                "Resistive fault reach at fixed line location",
+                "resistance_ohm",
+                [("mho", "mho"), ("quadrilateral", "quadrilateral")],
+                "Fault resistance (ohm)",
+                "Pickup = 1",
+            ),
+            curve(
+                "Mho boundary in the impedance plane",
+                "circle_r",
+                [("circle_x", "mho boundary")],
+                "Resistance (ohm)",
+                "Reactance (ohm)",
+            ),
+        ],
+        assumptions=[
+            "Radial single-infeed apparent impedance adds a real fault-resistance term.",
+            "Extra resistive reach can increase load encroachment risk; no universal superior characteristic is claimed.",
+        ],
+    )
