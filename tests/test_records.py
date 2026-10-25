@@ -66,3 +66,16 @@ def test_dual_terminal_alignment_rejects_hidden_clock_shift():
     with pytest.raises(ValueError, match="synchronized"):
         m.align(a, b)
     assert np.all(m.align(a, a)["valid"])
+
+
+def test_record_report_marks_estimation_validity_and_uses_primary_units():
+    from protectlab.core import abc
+    from protectlab.waveforms import synthesize
+
+    t = np.arange(400) / 3200
+    record = m.Record(
+        t, synthesize(t, abc([0, 230, 0])), synthesize(t, abc([0, 20, 0])), np.ones(len(t), bool)
+    )
+    result = m.report(record)
+    assert result["parameters"]["primary_units"]
+    assert result["summary"]["trip_time_s"] is None

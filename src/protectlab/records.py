@@ -161,3 +161,64 @@ def align(left, right, tolerance_s=1e-9):
         "right_current_a": right.current_a.copy(),
         "valid": left.valid & right.valid,
     }
+
+
+def report(record, **settings):
+    from .results import curve, make
+
+    result = replay(record, **settings)
+    magnitude = np.max(abs(result["phasor_a"]), axis=1)
+    parameters = {
+        "nominal_hz": record.nominal_hz,
+        "sample_count": len(record.time_s),
+        "primary_units": True,
+        "pickup_a": 100,
+        "time_multiplier": 0.03,
+        "curve": "very",
+        "directional": True,
+        **settings,
+    }
+    return make(
+        "recorded-waveform-replay",
+        parameters,
+        {
+            "trip_time_s": result["trip_time_s"],
+            "valid_fraction": float(np.mean(result["valid"])),
+            "maximum_measured_rms_a": float(magnitude.max()),
+        },
+        {
+            "time_s": record.time_s,
+            "current_a": record.current_a,
+            "voltage_v": record.voltage_v,
+            "phase_a": record.current_a[:, 0],
+            "rms_a": magnitude,
+            "phasor_a": result["phasor_a"],
+            "travel": result["travel"],
+            "valid": result["valid"],
+            "trip": result["trip"].astype(float),
+        },
+        [
+            curve(
+                "Imported primary-unit current", "time_s", [("phase_a", "phase A")], "Time (s)", "Current (A)"
+            ),
+            curve(
+                "Full-cycle measurement",
+                "time_s",
+                [("rms_a", "maximum phase RMS", "valid")],
+                "Time (s)",
+                "RMS current (A)",
+            ),
+            curve(
+                "Offline relay replay",
+                "time_s",
+                [("travel", "inverse-time travel"), ("trip", "trip latched = 1")],
+                "Time (s)",
+                "Normalized travel / binary state",
+            ),
+        ],
+        assumptions=[
+            "Recorded waveform replay does not change the supplied waveform after a virtual trip.",
+            "Voltage and current channels must already be calibrated to primary SI units.",
+            "Missing-sample quality invalidates the entire affected Fourier window.",
+        ],
+    )
