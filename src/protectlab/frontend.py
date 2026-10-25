@@ -17,7 +17,7 @@ class Frontend:
         self.window = FourierWindow(self.fs, frequency_hz)
         self.filtered = np.zeros(3)
 
-    def update(self, time_s, values, valid=True):
+    def filter_sample(self, values):
         from scipy.signal import sosfilt
 
         from .core import finite
@@ -27,7 +27,10 @@ class Frontend:
             raise ValueError("three real measurement channels required")
         filtered, self.zi = sosfilt(self.sos, value[None, :], axis=0, zi=self.zi)
         self.filtered = filtered[0]
-        return self.window.update(time_s, self.filtered, valid)
+        return self.filtered.copy()
+
+    def update(self, time_s, values, valid=True):
+        return self.window.update(time_s, self.filter_sample(values), valid)
 
 
 class CurrentFrontend:
@@ -55,7 +58,8 @@ class CurrentFrontend:
         self.secondary = np.array(
             [state.update(time_s, value) for state, value in zip(self.states, current, strict=True)]
         )
-        result = adc(self.secondary, self.rail, self.bits)
+        filtered = self.filter.filter_sample(self.secondary)
+        result = adc(filtered, self.rail, self.bits)
         self.clipped = result["clipped"]
-        estimate = self.filter.update(time_s, result["values"], valid and not np.any(self.clipped))
+        estimate = self.filter.window.update(time_s, result["values"], valid and not np.any(self.clipped))
         return None if estimate is None else estimate * self.model.ratio
