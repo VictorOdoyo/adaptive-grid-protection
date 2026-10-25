@@ -19,3 +19,17 @@ def wilson(successes, trials, confidence=0.95):
         0.0 if successes == 0 else max(0.0, float(center - half)),
         1.0 if successes == trials else min(1.0, float(center + half)),
     )
+
+
+def mean_interval(samples, confidence=0.95, resamples=2000, seed=42):
+    from .core import finite, integer, stream
+
+    values = finite(samples, real=True, ndim=1)
+    integer(resamples, 100)
+    if len(values) < 2 or not 0 < confidence < 1:
+        raise ValueError("at least two independent samples and valid confidence required")
+    rng = stream(seed, "clearing-mean-bootstrap")
+    indices = rng.integers(0, len(values), (resamples, len(values)))
+    means = np.mean(values[indices], axis=1)
+    tail = (1 - confidence) / 2
+    return tuple(float(v) for v in np.quantile(means, [tail, 1 - tail]))
