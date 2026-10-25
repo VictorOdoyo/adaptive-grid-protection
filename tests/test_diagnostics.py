@@ -56,3 +56,14 @@ def test_voltage_unbalance_does_not_imply_available_inverter_negative_current():
     result = m.unbalance(abc([0, 100, 10]), abc([0, 20, 0]))
     assert result["voltage_negative_ratio"] == pytest.approx(0.1)
     assert not result["negative_current_observable"]
+
+
+def test_variable_projection_estimates_unknown_frequency_with_dc_and_harmonic():
+    from protectlab.waveforms import harmonics
+
+    t = np.linspace(0.003, 0.123, 400)
+    expected = np.array([10 + 3j, 8 - 1j, 4j])
+    wave = harmonics(t, {1: expected, 2: expected * 0.15}, 48.7) + 2
+    fit = m.fit_frequency(t, wave)
+    assert fit["frequency_hz"] == pytest.approx(48.7, abs=1e-5)
+    assert np.allclose(fit["phasors"][1], expected, atol=1e-5)

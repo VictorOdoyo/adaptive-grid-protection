@@ -88,3 +88,25 @@ def unbalance(voltage, current, minimum_v=1.0, minimum_a=0.1):
         "voltage_valid": valid,
         "negative_current_observable": abs(i[..., 2]) >= positive(minimum_a),
     }
+
+
+def fit_frequency(time, values, bounds_hz=(45.0, 55.0), harmonics=(1, 2), dc=True):
+    from scipy.optimize import minimize_scalar
+
+    from .core import finite, timebase
+    from .measurement import least_squares
+
+    t = timebase(time)
+    v = finite(values, real=True)
+    lower, upper = bounds_hz
+    if not 0 < lower < upper or not np.all(np.isfinite(bounds_hz)):
+        raise ValueError("positive ordered frequency search bounds required")
+
+    def objective(frequency):
+        return least_squares(t, v, frequency, harmonics, dc)["residual"] ** 2
+
+    fit = minimize_scalar(objective, bounds=bounds_hz, method="bounded", options={"xatol": 1e-10})
+    if not fit.success:
+        raise RuntimeError("frequency fit failed")
+    estimate = least_squares(t, v, fit.x, harmonics, dc)
+    return {**estimate, "frequency_hz": float(fit.x)}
