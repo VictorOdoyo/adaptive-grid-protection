@@ -67,3 +67,15 @@ def test_unknown_topology_is_reported_instead_of_claiming_safe_fallback():
     manager = m.Manager(base, m.certify(base, [[500, 500]], [(0, 0, 1)]))
     assert not m.status(manager, "unknown", 0, 0)["adaptive_valid"]
     assert not m.status(manager, "a", 0, 1)["adaptive_valid"]
+
+
+def test_pending_newer_revision_cannot_be_overwritten_by_an_older_proposal():
+    from dataclasses import replace
+
+    base = m.Group("base", "a", 1, (100, 100), (0.05, 0.2))
+    manager = m.Manager(base, m.certify(base, [[500, 500]], [(0, 0, 1)]))
+    newest = replace(base, name="new", revision=3)
+    manager.propose(newest, m.certify(newest, [[500, 500]], [(0, 0, 1)]), "a", 0.01, 0.01)
+    older = replace(base, name="old", revision=2)
+    with pytest.raises(ValueError, match="increasing"):
+        manager.propose(older, m.certify(older, [[500, 500]], [(0, 0, 1)]), "a", 0.02, 0.02)

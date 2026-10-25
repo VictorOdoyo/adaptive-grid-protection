@@ -118,7 +118,12 @@ class Manager:
     def propose(self, group, certificate, topology, observed_s, now_s):
         if not np.all(np.isfinite([observed_s, now_s])) or not 0 <= now_s - observed_s <= self.maximum_age:
             raise ValueError("fresh nonfuture topology observation required")
-        if group.topology != topology or group.revision <= self.active.revision:
+        floor = (
+            self.active.revision
+            if self.pending is None
+            else max(self.active.revision, self.pending["group"].revision)
+        )
+        if group.topology != topology or group.revision <= floor:
             raise ValueError("matching topology and increasing setting revision required")
         if not verify_certificate(group, certificate):
             raise ValueError("setting certificate is invalid")
