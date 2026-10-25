@@ -106,3 +106,21 @@ def test_residual_current_is_three_times_zero_sequence():
     r = m.quantities([1, 1, 1], [3, 0, 0])
     assert r["i0"] == pytest.approx(1)
     assert r["residual_current"] == pytest.approx(3)
+
+
+def test_rolling_fourier_preserves_phase_over_long_runs_and_recovers_quality():
+    from protectlab.waveforms import synthesize
+
+    t = np.arange(10000) / 3200
+    expected = np.array([10 + 3j, 2 - 5j, 7j])
+    wave = synthesize(t, expected)
+    window = m.FourierWindow()
+    estimates = []
+    for k, (when, value) in enumerate(zip(t, wave, strict=True)):
+        output = window.update(when, value, valid=k != 100)
+        if output is not None:
+            estimates.append(output)
+        if 100 <= k < 164:
+            assert output is None
+    assert np.allclose(estimates, expected, atol=1e-10)
+    assert len(window.samples) == 64

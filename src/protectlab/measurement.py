@@ -140,6 +140,8 @@ def mimic(values, sample_hz, tau_s, nominal_hz=50):
 
 
 class FourierWindow:
+    """Rolling demodulation with O(channels) update work and bounded storage."""
+
     def __init__(self, sample_hz=3200, frequency_hz=50):
         from collections import deque
 
@@ -150,24 +152,41 @@ class FourierWindow:
         self.count = round(self.fs / self.frequency)
         if self.count < 4 or abs(self.count * self.frequency - self.fs) > 1e-9 * self.fs:
             raise ValueError("integer cycle with at least four samples required")
-        self.samples = deque(maxlen=self.count)
-        self.times = deque(maxlen=self.count)
+        self.samples = deque()
+        self.total = None
+        self.last_time = None
+        self.bad = 0
+        self.updates = 0
 
     def update(self, time_s, value, valid=True):
         from .core import finite
 
         value = finite(value, real=True)
-        if self.times and abs(time_s - self.times[-1] - 1 / self.fs) > 1e-8 / self.fs:
-            raise ValueError("contiguous uniform stream required")
-        if not np.isfinite(time_s):
-            raise ValueError("finite sample time required")
-        self.times.append(float(time_s))
-        self.samples.append((value.copy(), bool(valid)))
-        if len(self.samples) < self.count or not all(item[1] for item in self.samples):
+        if not np.isfinite(time_s) or (
+            self.last_time is not None and abs(time_s - self.last_time - 1 / self.fs) > 1e-8 / self.fs
+        ):
+            raise ValueError("contiguous uniform finite stream required")
+        if not isinstance(valid, (bool, np.bool_)):
+            raise ValueError("boolean streaming sample quality required")
+        if self.total is None:
+            self.total = np.zeros_like(value, dtype=complex)
+        if value.shape != self.total.shape:
+            raise ValueError("streaming channel shape cannot change")
+        if len(self.samples) == self.count:
+            old, old_valid = self.samples.popleft()
+            self.total -= old
+            self.bad -= int(not old_valid)
+        weighted = value * np.exp(-2j * np.pi * self.frequency * time_s)
+        self.samples.append((weighted.copy(), bool(valid)))
+        self.total += weighted
+        self.bad += int(not valid)
+        self.last_time = float(time_s)
+        self.updates += 1
+        if self.updates % 4096 == 0:
+            self.total = np.sum([v for v, _ in self.samples], axis=0)
+        if len(self.samples) < self.count or self.bad:
             return None
-        v = np.array([item[0] for item in self.samples])
-        phase = np.exp(-2j * np.pi * self.frequency * np.asarray(self.times))
-        return np.sqrt(2) / self.count * np.tensordot(phase, v, axes=(0, 0))
+        return self.total.copy() * np.sqrt(2) / self.count
 
 
 def thd(fundamental, harmonics, minimum_a=1e-6):
