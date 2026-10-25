@@ -56,3 +56,9 @@ def test_differential_security_study_avoids_external_ratio_error_pickups():
 def test_quadrilateral_study_exposes_mho_resistive_underreach():
     result = m.distance_reach()
     assert result["summary"]["quadrilateral_detected_points"] > result["summary"]["mho_detected_points"]
+
+
+def test_two_ended_study_rejects_single_ended_infeed_bias():
+    result = m.fault_location()
+    assert result["summary"]["maximum_two_ended_error"] < 1e-12
+    assert result["summary"]["maximum_single_ended_error"] > 0.01

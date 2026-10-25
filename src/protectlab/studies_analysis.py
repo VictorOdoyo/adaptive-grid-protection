@@ -580,3 +580,73 @@ def distance_reach(scale=1, seed=42):
             "Extra resistive reach can increase load encroachment risk; no universal superior characteristic is claimed.",
         ],
     )
+
+
+def fault_location(scale=1, seed=42):
+    from .core import phase_matrix
+    from .diagnostics import reactance_location, two_ended
+    from .distance import ground_loops
+    from .network import Branch, balanced_source, currents, fault_connection, solve, split_line
+    from .results import curve, make
+
+    source1 = balanced_source("left", "a", 6350, 3 + 8j, 1 + 3j)
+    source2 = balanced_source("right", "b", 6350, 4 + 10j, 2 + 4j, angle_rad=0.08)
+    z0, z1 = 3 + 9j, 1 + 3j
+    line = Branch("line", "a", "b", phase_matrix([z0, z1, z1]))
+    fractions = np.linspace(0.1, 0.9, 17 * scale)
+    rows = []
+    for fraction in fractions:
+        buses, lines = split_line(["a", "b"], [line], "line", float(fraction))
+        solved = solve(buses, lines, [source1, source2], fault=fault_connection(buses, "fault", "ag", 5))
+        current = currents(solved, lines)["branches"]
+        left, right = current["line__near"], -current["line__far"]
+        dual = two_ended(solved["voltage"]["a"], solved["voltage"]["b"], left, right, line.z)
+        apparent = ground_loops(solved["voltage"]["a"], left, z0, z1)["impedance_ohm"][0]
+        single = reactance_location(apparent, z1)["fraction"]
+        rows.append(
+            {
+                "actual_fraction": float(fraction),
+                "two_ended_fraction": dual["fraction"],
+                "single_ended_fraction": float(single),
+                "voltage_fit_residual_v": dual["residual_v"],
+            }
+        )
+    return make(
+        "fault-location-infeed",
+        {
+            "fault_resistance_ohm": 5,
+            "line_z0_ohm": [3, 9],
+            "line_z1_ohm": [1, 3],
+            "remote_source_angle_rad": 0.08,
+            "seed": seed,
+        },
+        {
+            "maximum_two_ended_error": max(abs(r["two_ended_fraction"] - r["actual_fraction"]) for r in rows),
+            "maximum_single_ended_error": max(
+                abs(r["single_ended_fraction"] - r["actual_fraction"]) for r in rows
+            ),
+        },
+        {
+            "actual": fractions,
+            "two_ended": [r["two_ended_fraction"] for r in rows],
+            "single_ended": [r["single_ended_fraction"] for r in rows],
+        },
+        [
+            curve(
+                "Remote infeed and fault resistance bias single-ended location",
+                "actual",
+                [
+                    ("two_ended", "two-ended coupled phases"),
+                    ("single_ended", "single-ended reactance"),
+                    ("actual", "exact location"),
+                ],
+                "Actual line fraction",
+                "Estimated line fraction",
+            )
+        ],
+        {"locations": rows},
+        [
+            "Both terminals are synchronized and use the same known series impedance.",
+            "Line shunt capacitance and dynamic traveling waves are excluded from this phasor location model.",
+        ],
+    )
