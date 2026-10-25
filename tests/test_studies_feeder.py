@@ -13,3 +13,10 @@ def test_weak_source_static_case_reports_missed_protection_not_success():
     assert not result["summary"]["selective"]
     assert not result["summary"]["required_isolation"]
     assert result["summary"]["clearing_delay_s"] is None
+
+
+def test_weak_source_adaptation_restores_selective_interruption():
+    result = m.weak_adaptive()
+    assert result["summary"]["selective"]
+    assert result["summary"]["clearing_delay_s"] < 0.5
+    assert result["arrays"]["group_revision"][-1] == 2

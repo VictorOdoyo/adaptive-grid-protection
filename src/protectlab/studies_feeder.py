@@ -132,3 +132,14 @@ def weak_static(scale=1, seed=42):
         ["primary"],
         "Conventional 400 A pickup is intentionally retained after source strength decreases.",
     )
+
+
+def weak_adaptive(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(source_factor=20, adaptive=True, sample_hz=3200 * scale, seed=seed),
+        "weak-source-adaptive",
+        ["primary"],
+        "A certified 80/100 A group is committed before fault inception, with a modeled 0.2 s grading margin.",
+    )
