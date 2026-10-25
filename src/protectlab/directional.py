@@ -33,7 +33,7 @@ class MemoryVoltage:
         v = complex(finite(voltage))
         dt = positive(dt_s)
         if valid and abs(v) >= self.minimum:
-            if not np.isfinite(self.age):
+            if not np.isfinite(self.age) or self.age > self.hold:
                 self.memory = v
             else:
                 self.memory += (v - self.memory) * (-np.expm1(-dt / self.tau))

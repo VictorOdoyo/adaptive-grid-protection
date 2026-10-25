@@ -33,3 +33,11 @@ def test_residual_direction_uses_relay_into_line_current_sign():
     result = m.residual([-2, -2, -2], current)
     assert result["forward"]
     assert m.residual([-2, -2, -2], -current)["reverse"]
+
+
+def test_recovered_voltage_does_not_blend_an_expired_opposite_polarization():
+    memory = m.MemoryVoltage(20, 0.03)
+    memory.update(100, 0.001)
+    assert not memory.update(0, 0.04)["valid"]
+    recovered = memory.update(-100, 0.001)
+    assert recovered["valid"] and recovered["voltage"] == -100
