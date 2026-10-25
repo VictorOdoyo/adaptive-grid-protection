@@ -21,3 +21,9 @@ def test_mimic_study_removes_matching_dc_without_hiding_filter_phase():
     result = m.dc_rejection()
     assert result["summary"]["maximum_valid_mimic_error"] < 1e-10
     assert result["summary"]["maximum_valid_raw_error"] > 0.01
+
+
+def test_off_nominal_study_estimates_frequency_instead_of_reading_setup():
+    result = m.off_nominal()
+    assert result["summary"]["frequency_error_hz"] < 1e-5
+    assert result["summary"]["fitted_phasor_relative_error"] < 1e-6

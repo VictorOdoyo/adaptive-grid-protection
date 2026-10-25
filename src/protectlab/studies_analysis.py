@@ -230,3 +230,67 @@ def dc_rejection(scale=1, seed=42):
             "Its known complex frequency response is removed before phasor comparison.",
         ],
     )
+
+
+def off_nominal(scale=1, seed=42):
+    from .diagnostics import fit_frequency
+    from .measurement import dft
+    from .results import curve, make
+    from .waveforms import synthesize
+
+    fs = 3200 * scale
+    t = np.arange(round(0.12 * fs) + 1) / fs
+    expected = np.array([100 + 20j, -40 - 90j, -60 + 70j])
+    waveform = synthesize(t, expected, 48.7) + 3
+    fixed = dft(t, waveform, 50)
+    fit = fit_frequency(t, waveform)
+    reference = expected[None, :] * np.exp(2j * np.pi * (48.7 - 50) * t[:, None])
+    error = np.linalg.norm(fixed["phasor"] - reference, axis=1) / np.linalg.norm(expected)
+    recovered = np.asarray(fit["phasors"][1])
+    return make(
+        "off-nominal-estimation",
+        {
+            "actual_frequency_hz": 48.7,
+            "nominal_frequency_hz": 50,
+            "dc_offset_a": 3,
+            "sample_hz": fs,
+            "fit_bounds_hz": [45, 55],
+            "seed": seed,
+        },
+        {
+            "estimated_frequency_hz": fit["frequency_hz"],
+            "frequency_error_hz": abs(fit["frequency_hz"] - 48.7),
+            "fitted_phasor_relative_error": float(
+                np.linalg.norm(recovered - expected) / np.linalg.norm(expected)
+            ),
+        },
+        {
+            "time_s": t,
+            "fixed_error": error,
+            "valid": fixed["valid"],
+            "wave_a": waveform[:, 0],
+            "phasor_reference": reference,
+            "fitted_phasor": recovered,
+        },
+        [
+            curve(
+                "Off-nominal waveform with unknown DC",
+                "time_s",
+                [("wave_a", "phase A")],
+                "Time (s)",
+                "Current (A)",
+            ),
+            curve(
+                "Nominal full-cycle leakage against rotating reference",
+                "time_s",
+                [("fixed_error", "relative complex error")],
+                "Time (s)",
+                "Relative error",
+                valid="valid",
+            ),
+        ],
+        assumptions=[
+            "Frequency is estimated by bounded variable projection with joint DC and harmonic fitting.",
+            "This offline fit is not a claimed causal real-time frequency tracker.",
+        ],
+    )
