@@ -70,3 +70,30 @@ def test_field_archive_rejects_changed_array_or_metadata(tmp_path):
     np.savez_compressed(tmp_path / "metadata.npz", **copied)
     with pytest.raises(ValueError, match="metadata integrity"):
         m.load_archive(tmp_path / "metadata.npz")
+
+
+def test_exported_metadata_and_csv_have_canonical_lf_bytes_on_every_platform(tmp_path):
+    import csv
+    import json
+
+    m.export_data(_example(), tmp_path)
+    for path in tmp_path.iterdir():
+        assert b"\r\n" not in path.read_bytes()
+    with (tmp_path / "table_samples.csv").open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert float(rows[1]["error"]) == 0.02
+    assert json.loads((tmp_path / "parameters.json").read_text())["frequency_hz"] == 50
+
+
+def test_renderer_handles_curves_complex_components_and_masked_singular_regions(tmp_path):
+    from types import SimpleNamespace
+
+    from protectlab.results import image
+
+    result = _example()
+    grid = SimpleNamespace(x=np.arange(3) * 0.1, y=np.arange(3) * 0.1)
+    result["arrays"]["map"] = np.arange(9).reshape(3, 3) * (1 + 1j)
+    result["arrays"]["mask"] = np.eye(3, dtype=bool)
+    result["plots"].append(image("Complex field magnitude", "map", grid, "|E| (V/m)", "abs", "mask"))
+    path = m.plot_result(result, tmp_path / "figure.png")
+    assert path.read_bytes().startswith(b"\x89PNG")

@@ -134,3 +134,129 @@ def load_archive(path):
     result = {**metadata, "arrays": arrays}
     _check_provenance(result)
     return validate(result)
+
+
+def write_json(path, value):
+    import json
+    from pathlib import Path
+
+    from .results import native
+
+    Path(path).write_text(
+        json.dumps(native(value), indent=2, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def export_data(result, directory):
+    import csv
+    from pathlib import Path
+
+    from .results import validate
+
+    validate(result)
+    if "provenance" not in result:
+        result = stamp(result, {"case": result["name"], "parameters": result["parameters"]})
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, value in (
+        ("summary", result["summary"]),
+        ("parameters", result["parameters"]),
+        ("configuration", result["configuration"]),
+        ("provenance", result["provenance"]),
+    ):
+        write_json(directory / (name + ".json"), value)
+    tables = {"summary": [{"metric": key, "value": value} for key, value in result["summary"].items()]}
+    tables.update({"table_" + key: value for key, value in result["tables"].items() if value})
+    for name, rows in tables.items():
+        if not rows:
+            continue
+        with (directory / (name + ".csv")).open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]), lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(rows)
+    return directory
+
+
+def plot_result(result, path):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    from pathlib import Path
+
+    import matplotlib.pyplot as plt
+
+    from .results import validate
+
+    validate(result)
+    panels = result["plots"]
+    columns = 1 if len(panels) == 1 else 2
+    rows = (len(panels) + columns - 1) // columns
+    fig, axes = plt.subplots(
+        rows, columns, figsize=(7 * columns, 4.6 * rows), layout="constrained", squeeze=False
+    )
+    arrays = result["arrays"]
+    for ax, plot in zip(axes.flat, panels, strict=False):
+        if plot["kind"] == "curve":
+            x = arrays[plot["x"]]
+            selected = np.ones(len(x), bool) if plot["valid"] is None else arrays[plot["valid"]]
+            for series in plot["series"]:
+                y = np.asarray(arrays[series["key"]], dtype=float)
+                shown = np.where(selected, y, np.nan)
+                style = "o-" if len(x) <= 12 else "-"
+                if any(word in series["label"].lower() for word in ("exact", "analytic", "reference")):
+                    style = "--"
+                ax.plot(x, shown, style, label=series["label"], linewidth=1.6, markersize=4)
+            ax.set(xscale=plot["xscale"], yscale=plot["yscale"])
+            if plot.get("ylim") is not None:
+                ax.set_ylim(plot["ylim"])
+            ax.grid(alpha=0.22)
+            ax.legend(fontsize=8)
+        else:
+            field = arrays[plot["array"]]
+            if plot["component"] == "abs":
+                field = abs(field)
+            elif plot["component"] == "imag":
+                field = field.imag
+            else:
+                field = field.real
+            if plot["mask"] is not None:
+                field = np.ma.masked_where(arrays[plot["mask"]], field)
+            signed = np.min(field) < 0 < np.max(field)
+            colormap = plt.get_cmap("RdBu_r" if signed else "viridis").with_extremes(bad="#d1d5db")
+            limit = float(np.max(abs(field))) if signed else None
+            shown = ax.pcolormesh(
+                plot["x"],
+                plot["y"],
+                field,
+                shading="nearest",
+                cmap=colormap,
+                vmin=-limit if signed else None,
+                vmax=limit,
+            )
+            if plot.get("categorical", False):
+                x, y = np.asarray(plot["x"]), np.asarray(plot["y"])
+                ax.set(
+                    xlim=(x[0] - (x[1] - x[0]) / 2, x[-1] + (x[-1] - x[-2]) / 2),
+                    ylim=(y[0] - (y[1] - y[0]) / 2, y[-1] + (y[-1] - y[-2]) / 2),
+                    xticks=x,
+                    yticks=y,
+                    aspect=plot.get("aspect", "equal"),
+                )
+            else:
+                ax.set(
+                    xlim=(plot["x"][0], plot["x"][-1]),
+                    ylim=(plot["y"][0], plot["y"][-1]),
+                    aspect=plot.get("aspect", "equal"),
+                )
+            fig.colorbar(shown, ax=ax, label=plot["colorbar"], pad=0.02)
+        ax.set(title=plot["title"], xlabel=plot["xlabel"], ylabel=plot["ylabel"])
+    for ax in list(axes.flat)[len(panels) :]:
+        ax.set_axis_off()
+    fig.suptitle(result["name"] + " | sampled grid protection", fontsize=14)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
