@@ -51,3 +51,13 @@ def test_time_integrals_use_actual_nonuniform_spacing():
     assert m.integrate([0, 0.1, 0.4], [0, 0.1, 0.4]) == pytest.approx(0.08)
     with pytest.raises(ValueError):
         m.timebase([0, 0, 1])
+
+
+def test_cached_sequence_transform_is_unitary_and_immutable():
+    assert np.allclose(m.SEQUENCE_INVERSE @ m.SEQUENCE, np.eye(3), atol=1e-15)
+    values = np.random.default_rng(3).normal(size=(1000, 3)) + 1j * np.random.default_rng(4).normal(
+        size=(1000, 3)
+    )
+    assert np.allclose(m.abc(m.seq(values)), values, atol=1e-14)
+    with pytest.raises(ValueError):
+        m.SEQUENCE[0, 0] = 2

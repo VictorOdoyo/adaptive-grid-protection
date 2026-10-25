@@ -31,6 +31,11 @@ A = np.exp(2j * np.pi / 3)
 SEQUENCE = np.array([[1, 1, 1], [1, A**2, A], [1, A, A**2]], complex)
 
 
+SEQUENCE_INVERSE = SEQUENCE.conj().T / 3
+SEQUENCE.setflags(write=False)
+SEQUENCE_INVERSE.setflags(write=False)
+
+
 def abc(sequence):
     value = finite(sequence)
     if value.shape[-1] != 3:
@@ -42,14 +47,14 @@ def seq(phases):
     value = finite(phases)
     if value.shape[-1] != 3:
         raise ValueError("final axis must have three phases")
-    return value @ np.linalg.inv(SEQUENCE).T
+    return value @ SEQUENCE_INVERSE.T
 
 
 def phase_matrix(sequence_impedances):
     values = finite(sequence_impedances)
     if values.shape != (3,):
         raise ValueError("three sequence impedances required")
-    return SEQUENCE @ np.diag(values) @ np.linalg.inv(SEQUENCE)
+    return SEQUENCE @ np.diag(values) @ SEQUENCE_INVERSE
 
 
 def power(voltage, current):
