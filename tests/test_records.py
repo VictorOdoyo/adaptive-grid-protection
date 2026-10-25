@@ -14,3 +14,12 @@ def test_record_rejects_misaligned_samples_and_protects_input_snapshot():
         record.current_a[0] = 0
     with pytest.raises(ValueError):
         m.Record(t, current, current, np.ones(100))
+
+
+def test_csv_has_unit_labels_explicit_quality_and_platform_stable_lf(tmp_path):
+    record = m.Record([0, 0.001], np.ones((2, 3)), np.ones((2, 3)) * 2, np.array([True, False]))
+    path = m.write_csv(record, tmp_path / "wave.csv")
+    text = path.read_bytes()
+    assert b"ia_a" in text and b"va_v" in text
+    assert b"\r\n" not in text
+    assert text.splitlines()[-1].endswith(b",0")

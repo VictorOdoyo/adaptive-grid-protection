@@ -34,3 +34,22 @@ class Record:
         ):
             value.setflags(write=False)
             object.__setattr__(self, name, value)
+
+
+COLUMNS = ("time_s", "va_v", "vb_v", "vc_v", "ia_a", "ib_a", "ic_a", "valid")
+
+
+def write_csv(record, path):
+    import csv
+    from pathlib import Path
+
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.writer(stream, lineterminator="\n")
+        writer.writerow(COLUMNS)
+        for t, v, i, q in zip(record.time_s, record.voltage_v, record.current_a, record.valid, strict=True):
+            writer.writerow(
+                [repr(float(t)), *[repr(float(x)) for x in v], *[repr(float(x)) for x in i], int(q)]
+            )
+    return path
