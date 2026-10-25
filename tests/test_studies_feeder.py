@@ -30,3 +30,12 @@ def test_earth_fault_case_is_selective_with_unbalanced_phase_currents():
     fault = (result["arrays"]["time_s"] > 0.15) & (result["arrays"]["time_s"] < 0.18)
     current = result["arrays"]["true_current_a"][fault, 0]
     assert np.max(abs(current[:, 0])) > np.max(abs(current[:, 1])) * 1.5
+
+
+def test_phase_fault_replay_is_selective_without_ground_fault_current():
+    from protectlab.core import seq
+
+    result = m.phase_fault()
+    assert result["summary"]["selective"]
+    current = result["arrays"]["true_current_a"][500, 0]
+    assert abs(seq(current)[0]) < abs(seq(current)[1]) * 0.01

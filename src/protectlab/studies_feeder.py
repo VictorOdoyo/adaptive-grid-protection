@@ -154,3 +154,14 @@ def earth(scale=1, seed=42):
         ["primary"],
         "The single-line-to-ground case retains zero-sequence source and line impedances.",
     )
+
+
+def phase_fault(scale=1, seed=42):
+    from .simulation import Scenario
+
+    return evaluate(
+        Scenario(fault_kind="bc", source_factor=20, adaptive=True, sample_hz=3200 * scale, seed=seed),
+        "phase-fault-adaptive",
+        ["primary"],
+        "Line-to-line faults have no direct ground connection and cannot rely on residual-current pickup.",
+    )
