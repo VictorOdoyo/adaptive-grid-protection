@@ -43,3 +43,17 @@ def test_import_audit_exposes_timestamp_gap_and_quality_loss():
     audit = m.audit(record)
     assert not audit["uniform"]
     assert audit["valid_fraction"] == pytest.approx(0.99)
+
+
+def test_imported_fault_replay_has_measured_detection_delay_and_invalid_quality_reset():
+    from protectlab.core import abc
+    from protectlab.waveforms import envelope, synthesize
+
+    t = np.arange(2001) / 3200
+    voltage = synthesize(t, abc([0, 230, 0]))
+    current = synthesize(t, envelope(t, abc([0, 10, 0]), [(0.1, abc([0, 500 * np.exp(-1.2j), 0]))]))
+    record = m.Record(t, voltage, current, np.ones(len(t), bool))
+    result = m.replay(record)
+    assert 0.1 < result["trip_time_s"] < 0.3
+    bad = m.Record(t, voltage, current, np.zeros(len(t), bool))
+    assert m.replay(bad)["trip_time_s"] is None

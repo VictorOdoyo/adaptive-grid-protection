@@ -99,3 +99,49 @@ def audit(record):
         "maximum_gap_s": float(np.max(dt)),
         "duration_s": float(record.time_s[-1] - record.time_s[0]),
     }
+
+
+def replay(
+    record,
+    pickup_a=100,
+    time_multiplier=0.03,
+    curve="very",
+    directional=True,
+    maximum_torque_rad=1.2,
+    memory_hold_s=0.6,
+):
+    from .core import seq
+    from .directional import MemoryVoltage, torque
+    from .measurement import dft
+    from .overcurrent import InverseRelay
+
+    quality = audit(record)
+    if not quality["uniform"] or not quality["integer_cycle"]:
+        raise ValueError("relay replay requires uniform nominal-cycle sampling")
+    measured_i = dft(record.time_s, record.current_a, record.nominal_hz, quality=record.valid)
+    measured_v = dft(record.time_s, record.voltage_v, record.nominal_hz, quality=record.valid)
+    relay = InverseRelay(pickup_a, curve, time_multiplier)
+    memory = MemoryVoltage(1.0, memory_hold_s)
+    trip = np.zeros(len(record.time_s), bool)
+    forward = np.zeros(len(record.time_s), bool)
+    travel = np.zeros(len(record.time_s))
+    for k in range(1, len(record.time_s)):
+        dt = record.time_s[k] - record.time_s[k - 1]
+        valid = bool(measured_i["valid"][k] and measured_v["valid"][k])
+        v1 = seq(measured_v["phasor"][k])[1]
+        i1 = seq(measured_i["phasor"][k])[1]
+        pol = memory.update(v1, dt, valid)
+        forward[k] = pol["valid"] and bool(torque(pol["voltage"], i1, maximum_torque_rad)["forward"])
+        trip[k] = relay.update(
+            float(np.max(abs(measured_i["phasor"][k]))), dt, valid, blocked=directional and not forward[k]
+        )
+        travel[k] = relay.travel
+    indices = np.flatnonzero(trip)
+    return {
+        "trip": trip,
+        "forward": forward,
+        "travel": travel,
+        "phasor_a": measured_i["phasor"],
+        "valid": measured_i["valid"],
+        "trip_time_s": None if not len(indices) else float(record.time_s[indices[0]]),
+    }
